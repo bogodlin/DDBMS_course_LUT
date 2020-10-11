@@ -1,19 +1,23 @@
 {% extends "layout.html" %}
 {% block content %}
 
-    <p>Yet another home page</p>
+    <h1>Welcome to the 'Eye for eye' optician intranet!</h1>
+    {% if current_user.is_authenticated %}
+        <p>Created cases:</p>
+        {% for case in created_cases %}
+            <article class="media content-section">
+                <div class="media-body">
+                    <div class="article-metadata">
+                        {#              <a class="mr-2" href="#">{{ post.author }}</a>#}
+                        <small class="text-muted">{{ case.id }} </small>
+                    </div>
+                    <h2><a class="article-title"
+                           href="#">{{ case.case_citizen.name }} {{ case.case_citizen.surname }}</a></h2>
+                    <p class="article-content">{{ case.comment }}</p>
+                </div>
+            </article>
+        {% endfor %}
 
-    {#    {% for post in posts %}#}
-{#        <article class="media content-section">#}
-{#          <div class="media-body">#}
-{#            <div class="article-metadata">#}
-{#              <a class="mr-2" href="#">{{ post.author }}</a>#}
-{#              <small class="text-muted">{{ post.date_posted }}</small>#}
-{#            </div>#}
-{#            <h2><a class="article-title" href="#">{{ post.title }}</a></h2>#}
-{#            <p class="article-content">{{ post.content }}</p>#}
-{#          </div>#}
-{#        </article>#}
-{#    {% endfor %}#}
+    {% endif %}
 
 {% endblock content %}
