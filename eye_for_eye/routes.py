@@ -1,12 +1,12 @@
 import os
 import secrets
 from PIL import Image
-from eye_for_eye import app, bcrypt
+from eye_for_eye import app, bcrypt, mail
 from flask import render_template, flash, redirect, url_for, session, request
 from eye_for_eye.forms import *
 from eye_for_eye.models import *
 from flask_login import login_user, current_user, logout_user, login_required
-
+from flask_mail import Message
 
 @app.route("/")
 @app.route("/home")
@@ -46,11 +46,17 @@ def login_optician():
     form = LoginForm()
     if form.validate_on_submit():
         optician = Optician.query.filter_by(email=form.email.data).first()
-        if optician and bcrypt.check_password_hash(optician.password, form.password.data):
-            login_user(optician, remember=form.remember.data)
-            return redirect(url_for('home'))
+        if optician:
+            if optician.active == True:
+                if bcrypt.check_password_hash(optician.password, form.password.data):
+                    login_user(optician, remember=form.remember.data)
+                    return redirect(url_for('home'))
+                else:
+                    flash('Login Unsuccessful. Please check email and password', 'danger')
+            else:
+                flash('User has not been activated yet', 'danger')
         else:
-            flash('Login Unsuccessful. Please check email and password', 'danger')
+            flash('No user with the submitted email was found. Please, check it again', 'danger')
     return render_template('login.html', title='Login', form=form)
 
 
@@ -60,7 +66,7 @@ def logout():
     return redirect(url_for('home'))
 
 
-# --------------------------------------- Case creation ---------------------------------------
+# Case creation
 
 @app.route('/create_case', methods=['GET', 'POST'])
 @login_required
@@ -78,6 +84,19 @@ def step1():
             flash(f'No registered citizen with {em} email address is found', 'danger')
     return render_template('step1.html', form=form)
 
+def find_free_ophtalmologist():
+    free_ophtalmologist_query = """
+    select free_ophta.id, count(*) as "Cases"
+    from "case" as "cases"
+         inner join
+         (select * from "ophtalmologist" where active = True and available = True) "free_ophta"
+         on cases.ophtalmologist = free_ophta.id
+    group by free_ophta.id
+    order by 2
+    limit 1
+    """
+    free_ophtalmologist = db.engine.execute(free_ophtalmologist_query).first().id
+    return free_ophtalmologist
 
 @app.route('/step2', methods=['GET', 'POST'])
 @login_required
@@ -92,11 +111,12 @@ def step2():
         for file in form.files.data:
             picture_file = save_picture(file)
             files_filenames.append(picture_file)
-        case = Case(citizen=found_citizen, optician=current_user.id, status=1, comment=form.comment.data,
+        case = Case(citizen=found_citizen, optician=current_user.id, ophtalmologist=find_free_ophtalmologist() , status=1, comment=form.comment.data,
                     images=files_filenames)
         db.session.add(case)
         db.session.commit()
-        return render_template('case_created.html')
+        flash('New case have been created', 'success')
+        return redirect(url_for('home'))
 
     return render_template('step2.html', image_file=image_file, citizen=citizen, form=form)
 
@@ -116,12 +136,12 @@ def register_new_citizen():
         db.session.add(new_citizen)
         db.session.commit()
         flash('New citizen has been created!', 'success')
-        return redirect(url_for('step2'))
+        return redirect(url_for('step1'))
 
     return render_template('citizen_registration.html', title='Citizen', form=form)
 
 
-# --------------------------------------- Optician's account ---------------------------------------
+# Optician's account
 
 def save_picture(form_picture):
     random_hex = secrets.token_hex(8)
@@ -129,9 +149,9 @@ def save_picture(form_picture):
     picture_fn = random_hex + f_ext
     picture_path = os.path.join(app.root_path, 'static/profile_pics', picture_fn)
 
-    output_size = (125, 125)
+    # output_size = (125, 125)
     i = Image.open(form_picture)
-    i.thumbnail(output_size)
+    # i.thumbnail(output_size)
     i.save(picture_path)
 
     return picture_fn
@@ -154,3 +174,47 @@ def account():
     image_file = url_for('static', filename='profile_pics/' + current_user.image_file)
     return render_template('account.html', title='Account',
                            image_file=image_file, form=form)
+
+# Reset password
+
+def send_reset_email(user):
+    token = user.get_reset_token()
+    msg = Message('Password Reset Request',
+                  sender='Eye for eye',
+                  recipients=[user.email])
+    msg.body = f'''To reset your password, visit the following link:
+{url_for('reset_token', token=token, _external=True)}
+If you did not make this request then simply ignore this email and no changes will be made.
+'''
+    mail.send(msg)
+
+
+@app.route("/reset_password", methods=['GET', 'POST'])
+def reset_request():
+    if current_user.is_authenticated:
+        return redirect(url_for('home'))
+    form = RequestResetForm()
+    if form.validate_on_submit():
+        user = Optician.query.filter_by(email=form.email.data).first()
+        send_reset_email(user)
+        flash('An email has been sent with instructions to reset your password.', 'info')
+        return redirect(url_for('login_optician'))
+    return render_template('reset_request.html', title='Reset Password', form=form)
+
+
+@app.route("/reset_password/<token>", methods=['GET', 'POST'])
+def reset_token(token):
+    if current_user.is_authenticated:
+        return redirect(url_for('home'))
+    user = Optician.verify_reset_token(token)
+    if user is None:
+        flash('That is an invalid or expired token', 'warning')
+        return redirect(url_for('reset_request'))
+    form = ResetPasswordForm()
+    if form.validate_on_submit():
+        hashed_password = bcrypt.generate_password_hash(form.password.data).decode('utf-8')
+        user.password = hashed_password
+        db.session.commit()
+        flash('Your password has been updated! You are now able to log in', 'success')
+        return redirect(url_for('login_optician'))
+    return render_template('reset_token.html', title='Reset Password', form=form)

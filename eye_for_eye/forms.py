@@ -3,7 +3,7 @@ from flask_wtf.file import FileField, FileAllowed
 from wtforms import StringField, PasswordField, SubmitField, BooleanField, MultipleFileField, TextAreaField, DateField
 from wtforms.validators import DataRequired, Length, Email, EqualTo, ValidationError
 from eye_for_eye.models import Optician, Citizen
-
+from eye_for_eye.models import Optician
 
 # Optician Registration form
 
@@ -24,6 +24,7 @@ class RegistrationForm(FlaskForm):
         if optician:
             raise ValidationError('Email already taken')
 
+# Optician Login form
 
 class LoginForm(FlaskForm):
     email = StringField('Email',
@@ -32,11 +33,33 @@ class LoginForm(FlaskForm):
     remember = BooleanField('Remember Me')
     submit = SubmitField('Login')
 
+# Password reset request form
+
+class RequestResetForm(FlaskForm):
+    email = StringField('Email',
+                        validators=[DataRequired(), Email()])
+    submit = SubmitField('Request Password Reset')
+
+    def validate_email(self, email):
+        user = Optician.query.filter_by(email=email.data).first()
+        if user is None:
+            raise ValidationError('There is no account with that email. You must register first.')
+
+# Password change form
+
+class ResetPasswordForm(FlaskForm):
+    password = PasswordField('Password', validators=[DataRequired()])
+    confirm_password = PasswordField('Confirm Password',
+                                     validators=[DataRequired(), EqualTo('password')])
+    submit = SubmitField('Reset Password')
+
+# Optician Update form
 
 class UpdateAccountForm(FlaskForm):
     picture = FileField('Update Profile Picture', validators=[FileAllowed(['jpg', 'png'])])
     submit = SubmitField('Update')
 
+# Case creation form
 
 class OpticianUploadForm(FlaskForm):
     comment = TextAreaField('Comment',
@@ -44,6 +67,7 @@ class OpticianUploadForm(FlaskForm):
     files = MultipleFileField('File(s) uploads', validators=[DataRequired()])
     submit = SubmitField('Upload')
 
+# Citizen Search form
 
 class CitizenSearchForm(FlaskForm):
     email = StringField('Email',
@@ -74,3 +98,6 @@ class CitizenRegistrationForm(FlaskForm):
         citizen = Citizen.query.filter_by(email=email.data).first()
         if citizen:
             raise ValidationError('Email already taken. Enter another email.')
+
+
+

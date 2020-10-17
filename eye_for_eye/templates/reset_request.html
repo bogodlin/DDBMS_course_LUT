@@ -1,16 +1,10 @@
 {% extends "layout.html" %}
 {% block content %}
-    <h1>Step 1</h1>
-{#    <div class="progress">#}
-{#        <div class="progress-bar" role="progressbar" style="width: 25%;" aria-valuenow="30" aria-valuemin="0"#}
-{#             aria-valuemax="100">25%#}
-{#        </div>#}
-{#    </div>#}
     <div class="content-section">
         <form method="POST" action="">
             {{ form.hidden_tag() }}
             <fieldset class="form-group">
-                <legend class="border-bottom mb-4">Find a citizen:</legend>
+                <legend class="border-bottom mb-4">Reset Password</legend>
                 <div class="form-group">
                     {{ form.email.label(class="form-control-label") }}
                     {% if form.email.errors %}
@@ -27,12 +21,7 @@
             </fieldset>
             <div class="form-group">
                 {{ form.submit(class="btn btn-outline-info") }}
-                <small class="text-muted ml-2">
-                    <a href="{{ url_for('register_new_citizen') }}">Or register a new citizen</a>
-                </small>
             </div>
-
         </form>
     </div>
-
 {% endblock content %}
