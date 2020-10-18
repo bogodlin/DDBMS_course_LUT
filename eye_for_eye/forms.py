@@ -90,6 +90,8 @@ class CitizenRegistrationForm(FlaskForm):
 
     phone_number = StringField('Phone number')
 
+    #TODO Add country
+
     picture = FileField('Update Profile Picture', validators=[FileAllowed(['jpg', 'png'])])
 
     submit = SubmitField('Register Citizen')

@@ -8,6 +8,7 @@ from eye_for_eye.models import *
 from flask_login import login_user, current_user, logout_user, login_required
 from flask_mail import Message
 
+
 @app.route("/")
 @app.route("/home")
 def home():
@@ -98,6 +99,12 @@ def find_free_ophtalmologist():
     free_ophtalmologist = db.engine.execute(free_ophtalmologist_query).first().id
     return free_ophtalmologist
 
+def generate_case_code(citizen, current_time):
+    citizen_region_key = Country.query.filter_by(id=citizen.country).first().key
+    current_date = current_time.strftime("%Y%m%d")
+    return f"{citizen_region_key}-{citizen.name[0]}{citizen.surname[0]}-{current_date}"
+
+
 @app.route('/step2', methods=['GET', 'POST'])
 @login_required
 def step2():
@@ -107,11 +114,14 @@ def step2():
     image_file = url_for('static', filename='profile_pics/' + citizen.image_file)
 
     if form.validate_on_submit():
+        current_time = datetime.utcnow()
         files_filenames = []
         for file in form.files.data:
             picture_file = save_picture(file)
             files_filenames.append(picture_file)
-        case = Case(citizen=found_citizen, optician=current_user.id, ophtalmologist=find_free_ophtalmologist() , status=1, comment=form.comment.data,
+        case = Case(citizen=found_citizen, code=generate_case_code(citizen, current_time), optician=current_user.id,
+                    ophtalmologist=find_free_ophtalmologist(),
+                    status=1, comment=form.comment.data,
                     images=files_filenames)
         db.session.add(case)
         db.session.commit()
