@@ -4,12 +4,12 @@
     <h1>Welcome to the 'Eye for eye' optician intranet!</h1>
     {% if current_user.is_authenticated %}
         <p>Created cases:</p>
-        {% for case in created_cases %}
+        {% for case in created_cases.items %}
             <article class="media content-section">
                 <div class="media-body">
                     <div class="article-metadata">
                         {#              <a class="mr-2" href="#">{{ post.author }}</a>#}
-                        <small class="text-muted">{{ case.code }} - {{ case.date_posted }}</small>
+                        <small class="text-muted"><b>{{ case.code }}</b> - {{ case.date_posted }}</small>
                     </div>
                     <h2><a class="article-title"
                            href="#">{{ case.case_citizen.name }} {{ case.case_citizen.surname }}</a></h2>
@@ -17,6 +17,18 @@
                 </div>
             </article>
         {% endfor %}
+
+        {% for page_num in created_cases.iter_pages(left_edge=1, right_edge=1, left_current=1, right_current=2) %}
+      {% if page_num %}
+        {% if created_cases.page == page_num %}
+          <a class="btn btn-info mb-4" href="{{ url_for('home', page=page_num) }}">{{ page_num }}</a>
+        {% else %}
+          <a class="btn btn-outline-info mb-4" href="{{ url_for('home', page=page_num) }}">{{ page_num }}</a>
+        {% endif %}
+      {% else %}
+        ...
+      {% endif %}
+    {% endfor %}
 
     {% endif %}
 

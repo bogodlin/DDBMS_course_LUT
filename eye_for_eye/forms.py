@@ -1,5 +1,5 @@
 from flask_wtf import FlaskForm
-from flask_wtf.file import FileField, FileAllowed
+from flask_wtf.file import FileField, FileAllowed, FileRequired
 from wtforms import StringField, PasswordField, SubmitField, BooleanField, MultipleFileField, TextAreaField, DateField
 from wtforms.validators import DataRequired, Length, Email, EqualTo, ValidationError
 from eye_for_eye.models import Optician, Citizen
@@ -56,7 +56,7 @@ class ResetPasswordForm(FlaskForm):
 # Optician Update form
 
 class UpdateAccountForm(FlaskForm):
-    picture = FileField('Update Profile Picture', validators=[FileAllowed(['jpg', 'png'])])
+    picture = FileField('Update Profile Picture', validators=[FileAllowed(['jpg', 'png']), DataRequired()])
     submit = SubmitField('Update')
 
 # Case creation form
@@ -92,7 +92,7 @@ class CitizenRegistrationForm(FlaskForm):
 
     #TODO Add country
 
-    picture = FileField('Update Profile Picture', validators=[FileAllowed(['jpg', 'png'])])
+    picture = FileField('Add Picture', validators=[FileAllowed(['jpg', 'png']), DataRequired()])
 
     submit = SubmitField('Register Citizen')
 

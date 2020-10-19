@@ -13,7 +13,9 @@ from flask_mail import Message
 @app.route("/home")
 def home():
     if current_user.is_authenticated:
-        created_cases = Case.query.filter_by(optician=current_user.id)
+        page = request.args.get('page', 1, type=int)
+        created_cases = Case.query.filter_by(optician=current_user.id)\
+            .order_by(Case.date_posted.desc()).paginate(page=page, per_page=5)
         return render_template('home.html', created_cases=created_cases)
 
     return render_template('home.html')
@@ -101,8 +103,8 @@ def find_free_ophtalmologist():
 
 def generate_case_code(citizen, current_time):
     citizen_region_key = Country.query.filter_by(id=citizen.country).first().key
-    current_date = current_time.strftime("%Y%m%d")
-    return f"{citizen_region_key}-{citizen.name[0]}{citizen.surname[0]}-{current_date}"
+    current_date, time = current_time.strftime("%Y%m%d"), current_time.strftime("%H%M%S")
+    return f"{citizen_region_key}-{citizen.name[0]}{citizen.surname[0]}-{current_date}-{time}"
 
 
 @app.route('/step2', methods=['GET', 'POST'])
@@ -136,12 +138,10 @@ def step2():
 def register_new_citizen():
     form = CitizenRegistrationForm()
     if form.validate_on_submit():
-        # if form.picture.data:
-        #     picture_file = save_picture(form.picture.data)
-        # TODO add citizen photo setting
+        picture_file = save_picture(form.picture.data)
 
         new_citizen = Citizen(name=form.name.data, surname=form.surname.data, date_of_birth=form.date_of_birth.data,
-                              email=form.email.data, phone_number=form.phone_number.data)
+                              email=form.email.data, phone_number=form.phone_number.data, image_file=picture_file)
 
         db.session.add(new_citizen)
         db.session.commit()
