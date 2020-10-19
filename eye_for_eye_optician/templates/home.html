@@ -1,9 +1,9 @@
 {% extends "layout.html" %}
 {% block content %}
 
-    <h1>Welcome to the 'Eye for eye' optician intranet!</h1>
+{#    <h1>Welcome to the 'Eye for eye' optician intranet!</h1>#}
     {% if current_user.is_authenticated %}
-        <p>Created cases:</p>
+        <h1>Created cases:</h1>
         {% for case in created_cases.items %}
             <article class="media content-section">
                 <div class="media-body">
@@ -11,8 +11,11 @@
                         {#              <a class="mr-2" href="#">{{ post.author }}</a>#}
                         <small class="text-muted"><b>{{ case.code }}</b> - {{ case.date_posted }}</small>
                     </div>
-                    <h2><a class="article-title"
-                           href="#">{{ case.case_citizen.name }} {{ case.case_citizen.surname }}</a></h2>
+                    <h2>
+                        {{ case.case_citizen.name }} {{ case.case_citizen.surname }}
+{#                        <a class="article-title"#}
+{#                           href="#">{{ case.case_citizen.name }} {{ case.case_citizen.surname }}</a>#}
+                    </h2>
                     <p class="article-content">{{ case.comment }}</p>
                 </div>
             </article>

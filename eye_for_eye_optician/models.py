@@ -1,4 +1,4 @@
-from eye_for_eye import db, login_manager, app
+from eye_for_eye_optician import db, login_manager, app
 from flask_login import UserMixin
 from sqlalchemy.dialects.postgresql import ARRAY
 from itsdangerous import TimedJSONWebSignatureSerializer as Serializer
@@ -100,7 +100,7 @@ class Case(db.Model):
     optician = db.Column(db.Integer, db.ForeignKey('optician.id'))
     ophtalmologist = db.Column(db.Integer, db.ForeignKey('ophtalmologist.id'))
     status = db.Column(db.Integer, db.ForeignKey('status.id'))
-    comment = db.Column(db.String(120), nullable=True)
+    comment = db.Column(db.String, nullable=True)
     images = db.Column(ARRAY(db.String))
 
     def __repr__(self):
