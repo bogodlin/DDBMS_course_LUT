@@ -1,0 +1,88 @@
+{% extends "layout.html" %}
+{% block under_sidebar %}
+
+    {#  Form  #}
+    {#  TODO modal windows  #}
+
+    <form method="POST" action="" enctype="multipart/form-data">
+        {{ form.hidden_tag() }}
+
+        <div class="form-group">
+            {{ form.reject_case(class="btn btn-danger") }}
+            {{ form.accept_case(class="btn btn-success", style="float: right") }}
+
+        </div>
+
+        <div class="content-section">
+            <div class="media">
+                <div class="media-body">
+
+                    <fieldset class="form-group">
+
+                        <div class="form-group">
+                            {{ form.ophtalmologist_comment.label(class="form-control-label") }}
+                            {% if form.ophtalmologist_comment.errors %}
+                                {{ form.ophtalmologist_comment(class="form-control form-control-lg is-invalid") }}
+                                <div class="invalid-feedback">
+                                    {% for error in form.ophtalmologist_comment.errors %}
+                                        <span>{{ error }}</span>
+                                    {% endfor %}
+                                </div>
+                            {% else %}
+                                {{ form.ophtalmologist_comment(class="form-control form-control-lg", rows='15') }}
+                            {% endif %}
+                        </div>
+
+                    </fieldset>
+
+                </div>
+            </div>
+        </div>
+
+    </form>
+
+
+
+{% endblock under_sidebar %}
+
+
+{% block content %}
+
+    <div class="content-section">
+        <div class="media">
+            <div class="media-body">
+                <h2 class="account-heading">{{ case.code }}</h2>
+                <p class="text-secondary">{{ case.optician_comment }}</p>
+            </div>
+        </div>
+
+        <br>
+    </div>
+
+    <div class="content-section">
+
+        <div class="media">
+            <div class="media-body">
+
+                <!-- Images -->
+
+                {% for case_image in case.images %}
+
+                    <div class="wm-zoom-container my-zoom-1">
+                        <div class="wm-zoom-box">
+                            <img id="zoomed_image"
+                                 src="{{ url_for('static', filename='cases/' + case_image) }} "
+                                 class="wm-zoom-default-img" alt="alternative text"
+                                 data-hight-src="{{ url_for('static', filename='cases/' + case_image) }} "
+                                 class="wm-zoom-default-img" data-loader-src="img/loader.gif">
+                        </div>
+                    </div>
+
+                    <br>
+
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+
+{% endblock content %}

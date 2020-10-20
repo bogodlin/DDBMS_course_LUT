@@ -7,6 +7,7 @@ import os
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = os.getenv('SECRET_KEY')
+#TODO deal with SQLALCHEMY_DATABASE_URI env variable
 app.config['SQLALCHEMY_DATABASE_URI'] = "postgresql://localhost:5432/app"
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 db = SQLAlchemy(app)
@@ -19,5 +20,5 @@ app.config['MAIL_USERNAME'] = os.getenv('MAIL_USERNAME')
 app.config['MAIL_PASSWORD'] = os.getenv('MAIL_PASSWORD')
 mail = Mail(app)
 
-from eye_for_eye import routes
+from eye_for_eye_optician import routes
 

@@ -1,10 +1,10 @@
 import os
 import secrets
 from PIL import Image
-from eye_for_eye import app, bcrypt, mail
+from eye_for_eye_optician import app, bcrypt, mail
 from flask import render_template, flash, redirect, url_for, session, request
-from eye_for_eye.forms import *
-from eye_for_eye.models import *
+from eye_for_eye_optician.forms import *
+from eye_for_eye_optician.models import *
 from flask_login import login_user, current_user, logout_user, login_required
 from flask_mail import Message
 
@@ -88,6 +88,9 @@ def step1():
     return render_template('step1.html', form=form)
 
 def find_free_ophtalmologist():
+
+    # TODO find ophto which hasn't got any assigned cases
+
     free_ophtalmologist_query = """
     select free_ophta.id, count(*) as "Cases"
     from "case" as "cases"
@@ -113,17 +116,17 @@ def step2():
     form = OpticianUploadForm()
     found_citizen = session.get('citizen_id', None)
     citizen = Citizen.query.filter_by(id=found_citizen).first()
-    image_file = url_for('static', filename='profile_pics/' + citizen.image_file)
+    image_file = url_for('static', filename='citizens/' + citizen.image_file)
 
     if form.validate_on_submit():
         current_time = datetime.utcnow()
         files_filenames = []
         for file in form.files.data:
-            picture_file = save_picture(file)
+            picture_file = save_case_picture(file)
             files_filenames.append(picture_file)
         case = Case(citizen=found_citizen, code=generate_case_code(citizen, current_time), optician=current_user.id,
                     ophtalmologist=find_free_ophtalmologist(),
-                    status=1, comment=form.comment.data,
+                    status=1, optician_comment=form.optician_comment.data,
                     images=files_filenames)
         db.session.add(case)
         db.session.commit()
@@ -138,7 +141,7 @@ def step2():
 def register_new_citizen():
     form = CitizenRegistrationForm()
     if form.validate_on_submit():
-        picture_file = save_picture(form.picture.data)
+        picture_file = save_citizen_picture(form.picture.data)
 
         new_citizen = Citizen(name=form.name.data, surname=form.surname.data, date_of_birth=form.date_of_birth.data,
                               email=form.email.data, phone_number=form.phone_number.data, image_file=picture_file)
@@ -153,7 +156,7 @@ def register_new_citizen():
 
 # Optician's account
 
-def save_picture(form_picture):
+def save_profile_picture(form_picture):
     random_hex = secrets.token_hex(8)
     _, f_ext = os.path.splitext(form_picture.filename)
     picture_fn = random_hex + f_ext
@@ -163,8 +166,32 @@ def save_picture(form_picture):
     i = Image.open(form_picture)
     # i.thumbnail(output_size)
     i.save(picture_path)
-
     return picture_fn
+
+def save_citizen_picture(form_picture):
+    random_hex = secrets.token_hex(8)
+    _, f_ext = os.path.splitext(form_picture.filename)
+    picture_fn = random_hex + f_ext
+    picture_path = os.path.join(app.root_path, 'static/citizens', picture_fn)
+
+    # output_size = (125, 125)
+    i = Image.open(form_picture)
+    # i.thumbnail(output_size)
+    i.save(picture_path)
+    return picture_fn
+
+def save_case_picture(form_picture):
+    random_hex = secrets.token_hex(8)
+    _, f_ext = os.path.splitext(form_picture.filename)
+    picture_fn = random_hex + f_ext
+    picture_path = os.path.join('eye_for_eye_ophtalmologist/static/cases', picture_fn)
+
+    # output_size = (125, 125)
+    i = Image.open(form_picture)
+    # i.thumbnail(output_size)
+    i.save(picture_path)
+    return picture_fn
+
 
 
 @app.route("/account", methods=['GET', 'POST'])
@@ -173,7 +200,7 @@ def account():
     form = UpdateAccountForm()
     if form.validate_on_submit():
         if form.picture.data:
-            picture_file = save_picture(form.picture.data)
+            picture_file = save_profile_picture(form.picture.data)
             current_user.image_file = picture_file
         db.session.commit()
         flash('Your account has been updated!', 'success')
@@ -192,7 +219,8 @@ def send_reset_email(user):
     msg = Message('Password Reset Request',
                   sender='Eye for eye',
                   recipients=[user.email])
-    msg.body = f'''To reset your password, visit the following link:
+    msg.body = f'''Optician intranet.
+To reset your password, visit the following link:
 {url_for('reset_token', token=token, _external=True)}
 If you did not make this request then simply ignore this email and no changes will be made.
 '''
