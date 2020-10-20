@@ -57,3 +57,10 @@ class ResetPasswordForm(FlaskForm):
 class UpdateAccountForm(FlaskForm):
     picture = FileField('Update Profile Picture', validators=[FileAllowed(['jpg', 'png']), DataRequired()])
     submit = SubmitField('Update')
+
+# Ophtalmologist Case Comment
+
+class CaseCommentForm(FlaskForm):
+    ophtalmologist_comment = TextAreaField('Comment', validators=[DataRequired()])
+    accept_case = SubmitField('Accept')
+    reject_case = SubmitField('Reject')

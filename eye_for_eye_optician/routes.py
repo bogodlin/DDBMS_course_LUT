@@ -126,7 +126,7 @@ def step2():
             files_filenames.append(picture_file)
         case = Case(citizen=found_citizen, code=generate_case_code(citizen, current_time), optician=current_user.id,
                     ophtalmologist=find_free_ophtalmologist(),
-                    status=1, comment=form.comment.data,
+                    status=1, optician_comment=form.optician_comment.data,
                     images=files_filenames)
         db.session.add(case)
         db.session.commit()
@@ -219,7 +219,8 @@ def send_reset_email(user):
     msg = Message('Password Reset Request',
                   sender='Eye for eye',
                   recipients=[user.email])
-    msg.body = f'''To reset your password, visit the following link:
+    msg.body = f'''Optician intranet.
+To reset your password, visit the following link:
 {url_for('reset_token', token=token, _external=True)}
 If you did not make this request then simply ignore this email and no changes will be made.
 '''

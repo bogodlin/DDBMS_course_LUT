@@ -3,7 +3,6 @@
 <head>
 
 
-
     <!-- Required meta tags -->
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
@@ -24,14 +23,14 @@
     {#Date picker style import#}
     {#TODO datepicker#}
 
-{#    <link rel="stylesheet" href="//code.jquery.com/ui/1.11.4/themes/smoothness/jquery-ui.css">#}
-{#    <script src="//code.jquery.com/jquery-1.10.2.js"></script>#}
-{#    <script src="//code.jquery.com/ui/1.11.4/jquery-ui.js"></script>#}
-{#    <script>#}
-{#        $(function () {#}
-{#            $(".dtpick").datepicker();#}
-{#        });#}
-{#    </script>#}
+    {#    <link rel="stylesheet" href="//code.jquery.com/ui/1.11.4/themes/smoothness/jquery-ui.css">#}
+    {#    <script src="//code.jquery.com/jquery-1.10.2.js"></script>#}
+    {#    <script src="//code.jquery.com/ui/1.11.4/jquery-ui.js"></script>#}
+    {#    <script>#}
+    {#        $(function () {#}
+    {#            $(".dtpick").datepicker();#}
+    {#        });#}
+    {#    </script>#}
 
     {#-----------------#}
 
@@ -48,9 +47,6 @@
             <div class="collapse navbar-collapse" id="navbarToggle">
                 <div class="navbar-nav mr-auto">
                     <a class="nav-item nav-link" href="{{ url_for('about') }}">About ℹ️</a>
-                    {% if current_user.is_authenticated %}
-                        <a class="nav-item nav-link" href="{{ url_for('home') }}">Don't forget to change</a>
-                    {% endif %}
 
                 </div>
                 <!-- Navbar Right Side -->
@@ -60,7 +56,8 @@
                            href="{{ url_for('account') }}">{{ current_user.name }} {{ current_user.surname }} 👤</a>
                         <a class="nav-item nav-link" href="{{ url_for('logout') }}">Logout 🚪</a>
                     {% else %}
-                        <a class="nav-item nav-link" href="{{ url_for('login_ophtalmologist') }}">Sign in (Ophtalmologist)</a>
+                        <a class="nav-item nav-link" href="{{ url_for('login_ophtalmologist') }}">Sign in
+                            (Ophtalmologist)</a>
                     {% endif %}
                 </div>
             </div>
@@ -93,15 +90,14 @@
                 </ul>
                 </p>
             </div>
+
+            {% block under_sidebar %}{% endblock %}
+
         </div>
     </div>
 </main>
 
-{#<nav class="navbar fixed-bottom navbar-light bg-steel">#}
-{#  <a class="navbar-brand" href="#">Fixed bottom</a>#}
-{#</nav>#}
-
-<!-- Optional JavaScript -->
+<!-- Zoom JavaScript -->
 <!-- jQuery first, then Popper.js, then Bootstrap JS -->
 <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js"
         integrity="sha384-KJ3o2DKtIkvYIK3UENzmM7KCkRr/rE9/Qpg6aAZGJwFDMVNA/GpGFF93hXpG5KkN"
@@ -114,20 +110,17 @@
         crossorigin="anonymous"></script>
 
 <!-- Zoom Scripts -->
-
-        <script type="text/javascript" src="{{ url_for('static', filename='jquery-1.11.1.js') }}"></script>
-        <script type="text/javascript" src="{{ url_for('static', filename='jquery.wm-zoom-1.0.min.js') }}"></script>
-		<script type="text/javascript">
-			$(document).ready(function(){
-				$('.my-zoom-1').WMZoom();
-				$('.my-zoom-2').WMZoom({
-					config : {
-						inner : true
-					}
-				});
-			});
-        </script>
-
-
+<script type="text/javascript" src="{{ url_for('static', filename='jquery-1.11.1.js') }}"></script>
+<script type="text/javascript" src="{{ url_for('static', filename='jquery.wm-zoom-1.0.min.js') }}"></script>
+<script type="text/javascript">
+    $(document).ready(function () {
+        $('.my-zoom-1').WMZoom();
+        $('.my-zoom-2').WMZoom({
+            config: {
+                inner: true
+            }
+        });
+    });
+</script>
 </body>
 </html>

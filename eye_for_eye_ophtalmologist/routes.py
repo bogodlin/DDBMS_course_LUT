@@ -14,11 +14,12 @@ from flask_mail import Message
 def home():
     if current_user.is_authenticated:
         page = request.args.get('page', 1, type=int)
-        assigned_active_cases = Case.query.filter_by(ophtalmologist=current_user.id)\
+        assigned_active_cases = Case.query.filter_by(ophtalmologist=current_user.id, status=1) \
             .order_by(Case.date_posted.desc()).paginate(page=page, per_page=5)
         return render_template('home.html', created_cases=assigned_active_cases)
 
     return render_template('home.html')
+
 
 @app.route("/about")
 def about():
@@ -35,7 +36,7 @@ def register_ophtalmologist():
     if form.validate_on_submit():
         hashed_password = bcrypt.generate_password_hash(form.password.data).decode('utf-8')
         ophtalmologist = Ophtalmologist(name=form.name.data, surname=form.surname.data, email=form.email.data,
-                            password=hashed_password)
+                                        password=hashed_password)
         db.session.add(ophtalmologist)
         db.session.commit()
         flash(f'Account created for {form.email.data}!', 'success')
@@ -61,10 +62,12 @@ def login_ophtalmologist():
             flash('No user with the submitted email was found. Please, check it again', 'danger')
     return render_template('login.html', title='Login', form=form)
 
+
 @app.route('/logout')
 def logout():
     logout_user()
     return redirect(url_for('home'))
+
 
 # Ophtalmologist's account
 
@@ -101,15 +104,49 @@ def account():
     return render_template('account.html', title='Account',
                            image_file=image_file, form=form)
 
+
 # View case
 
 @app.route("/case/<case_code>", methods=['GET', 'POST'])
 @login_required
 def view_case(case_code):
+    form = CaseCommentForm()
     case = Case.query.filter_by(code=case_code).first()
-    image_file = url_for('static', filename='profile_pics/' + current_user.image_file)
+    # image_file = url_for('static', filename='profile_pics/' + current_user.image_file)
+    if form.validate_on_submit():
+        session['ophtalmologist_comment'] = form.ophtalmologist_comment.data
+        if form.reject_case.data:
+            return redirect(url_for('reject_case', case_id=case.id))
+        elif form.accept_case.data:
+            return redirect(url_for('accept_case', case_id=case.id))
 
-    return render_template('view_case.html', case=case)
+    return render_template('view_case.html', form=form, case=case)
+
+
+# Reject case
+
+@app.route("/case/<case_id>/reject", methods=['POST', 'GET'])
+@login_required
+def reject_case(case_id):
+    ophtalmologist_comment = session.get('ophtalmologist_comment', None)
+    case = Case.query.get_or_404(case_id)
+    case.status, case.ophtalmologist_comment = 2, ophtalmologist_comment
+    db.session.commit()
+    flash(f'Case {case.code} was rejected', 'warning')
+    return redirect(url_for('home'))
+
+
+# Accept case
+
+@app.route("/case/<case_id>/accept", methods=['POST', 'GET'])
+@login_required
+def accept_case(case_id):
+    ophtalmologist_comment = session.get('ophtalmologist_comment', None)
+    case = Case.query.get_or_404(case_id)
+    case.status, case.ophtalmologist_comment = 3, ophtalmologist_comment
+    db.session.commit()
+    flash(f'Case {case.code} was accepted', 'success')
+    return redirect(url_for('home'))
 
 
 # Reset password
@@ -119,7 +156,8 @@ def send_reset_email(user):
     msg = Message('Password Reset Request',
                   sender='Eye for eye',
                   recipients=[user.email])
-    msg.body = f'''To reset your password, visit the following link:
+    msg.body = f'''Ophtalmologist intranet.
+To reset your password, visit the following link:
 {url_for('reset_token', token=token, _external=True)}
 If you did not make this request then simply ignore this email and no changes will be made.
 '''

@@ -61,7 +61,7 @@ class UpdateAccountForm(FlaskForm):
 # Case creation form
 
 class OpticianUploadForm(FlaskForm):
-    comment = TextAreaField('Comment',
+    optician_comment = TextAreaField('Comment',
                             validators=[DataRequired()])
     files = MultipleFileField('File(s) uploads', validators=[DataRequired()])
     submit = SubmitField('Upload')

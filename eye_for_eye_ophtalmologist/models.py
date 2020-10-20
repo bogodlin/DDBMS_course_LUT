@@ -99,7 +99,8 @@ class Case(db.Model):
     optician = db.Column(db.Integer, db.ForeignKey('optician.id'))
     ophtalmologist = db.Column(db.Integer, db.ForeignKey('ophtalmologist.id'))
     status = db.Column(db.Integer, db.ForeignKey('status.id'))
-    comment = db.Column(db.String(120), nullable=True)
+    optician_comment = db.Column(db.String, nullable=True)
+    ophtalmologist_comment = db.Column(db.String, nullable=True)
     images = db.Column(ARRAY(db.String))
 
     def __repr__(self):
