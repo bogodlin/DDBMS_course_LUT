@@ -90,7 +90,6 @@ def step1():
 def find_free_ophtalmologist():
 
     # TODO find ophto which hasn't got any assigned cases
-
     free_ophtalmologist_query = """
     select free_ophta.id, count(*) as "Cases"
     from "case" as "cases"
