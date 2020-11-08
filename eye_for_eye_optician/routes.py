@@ -8,7 +8,6 @@ from eye_for_eye_optician.models import *
 from flask_login import login_user, current_user, logout_user, login_required
 from flask_mail import Message
 
-
 @app.route("/")
 @app.route("/home")
 def home():
