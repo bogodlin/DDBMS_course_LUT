@@ -18,4 +18,4 @@ class Case(db.Model):
     images = db.Column(ARRAY(db.String))
 
     def __repr__(self):
-        return f"Case('{self.id}')"
+        return f"Case('{self.id}-{self.code}-{self.status}')"
