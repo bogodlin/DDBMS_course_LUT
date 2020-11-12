@@ -1,0 +1,42 @@
+{% extends "layout.html" %}
+
+{% block content %}
+
+    <div class="content-section">
+        <div class="media">
+            <div class="media-body">
+                <h2 class="account-heading">{{ case.code }}</h2>
+                <p class="text-secondary">{{ case.optician_comment }}</p>
+            </div>
+        </div>
+
+        <br>
+    </div>
+
+    <div class="content-section">
+
+        <div class="media">
+            <div class="media-body">
+
+                <!-- Images -->
+
+                {% for case_image in case.images %}
+
+                    <div class="wm-zoom-container my-zoom-1">
+                        <div class="wm-zoom-box">
+                            <img id="zoomed_image"
+                                 src="{{ url_for('static', filename='cases/' + case_image) }} "
+                                 class="wm-zoom-default-img" alt="alternative text"
+                                 data-hight-src="{{ url_for('static', filename='cases/' + case_image) }} "
+                                 class="wm-zoom-default-img" data-loader-src="img/loader.gif">
+                        </div>
+                    </div>
+
+                    <br>
+
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+
+{% endblock content %}
