@@ -5,7 +5,7 @@ from wtforms.validators import DataRequired, Length, Email, EqualTo, ValidationE
 from eye_for_eye_ophtalmologist.models import Ophtalmologist, Citizen
 
 # Ophtalmologist Registration form
-
+#Boris is a good person
 class RegistrationForm(FlaskForm):
     name = StringField('Name',
                        validators=[DataRequired(), Length(min=2, max=200)])
