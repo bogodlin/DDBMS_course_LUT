@@ -1,4 +1,4 @@
-rom eye_for_eye import db, app
+from eye_for_eye import db, app
 from sqlalchemy.dialects.postgresql import ARRAY
 from datetime import datetime
 
