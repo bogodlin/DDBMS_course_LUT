@@ -7,5 +7,11 @@
       <jdbc-driver>org.sqlite.JDBC</jdbc-driver>
       <jdbc-url>jdbc:sqlite:$PROJECT_DIR$/app/eye_for_eye.db</jdbc-url>
     </data-source>
+    <data-source source="LOCAL" name="PostgreSQL - app@localhost" uuid="aaffecd5-406d-485c-8677-6b03186a84a0">
+      <driver-ref>postgresql</driver-ref>
+      <synchronize>true</synchronize>
+      <jdbc-driver>org.postgresql.Driver</jdbc-driver>
+      <jdbc-url>jdbc:postgresql://localhost:5432/app</jdbc-url>
+    </data-source>
   </component>
 </project>
