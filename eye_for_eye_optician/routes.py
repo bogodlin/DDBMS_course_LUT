@@ -8,7 +8,6 @@ from eye_for_eye_optician.models import *
 from flask_login import login_user, current_user, logout_user, login_required
 from flask_mail import Message
 
-
 @app.route("/")
 @app.route("/home")
 def home():
@@ -90,7 +89,6 @@ def step1():
 def find_free_ophtalmologist():
 
     # TODO find ophto which hasn't got any assigned cases
-
     free_ophtalmologist_query = """
     select free_ophta.id, count(*) as "Cases"
     from "case" as "cases"
