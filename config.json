@@ -12,6 +12,10 @@
     {
       "type": "regular",
       "port": 5001
+    },
+    {
+      "type": "qp",
+      "port": 5002
     }
   ]
 }

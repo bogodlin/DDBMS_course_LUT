@@ -2,11 +2,14 @@ import os
 import secrets
 from PIL import Image
 from eye_for_eye_optician import app, bcrypt, mail
-from flask import render_template, flash, redirect, url_for, session, request
+from flask import render_template, flash, redirect, url_for, session, request, jsonify
 from eye_for_eye_optician.forms import *
 from eye_for_eye_optician.models import *
 from flask_login import login_user, current_user, logout_user, login_required
 from flask_mail import Message
+import requests
+import json_parser
+import jwt
 
 @app.route("/")
 @app.route("/home")

@@ -1,4 +1,4 @@
-from eye_for_eye_ophtalmologist import db, app
+from query_processor import db, app
 from sqlalchemy.dialects.postgresql import ARRAY
 from datetime import datetime
 
