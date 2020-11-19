@@ -35,3 +35,8 @@ def get_case(case_id):
     case_data['citizen'] = case.citizen
 
     return jsonify({'user' : case_data})
+
+@app.route('/save_data>', methods=["GET"])
+@token_required
+def save_data():
+    return
