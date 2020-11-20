@@ -2,7 +2,7 @@ import os
 import secrets
 from PIL import Image
 from eye_for_eye_optician import app, bcrypt, mail
-from flask import render_template, flash, redirect, url_for, session, request, jsonify
+from flask import render_template, flash, redirect, url_for, session, request
 from eye_for_eye_optician.forms import *
 from eye_for_eye_optician.models import *
 from flask_login import login_user, current_user, logout_user, login_required
@@ -37,12 +37,31 @@ def register_optician():
     form = RegistrationForm()
     if form.validate_on_submit():
         hashed_password = bcrypt.generate_password_hash(form.password.data).decode('utf-8')
-        optician = Optician(name=form.name.data, surname=form.surname.data, email=form.email.data,
+
+        token = jwt.encode({'hardware_id': os.getenv('HARDWARE_ID')},
+                           app.config['SECRET_KEY'])
+        plat_host, plat_port = json_parser.retrieve_host('qp'), json_parser.retrieve_port('qp')
+
+        try:
+
+            opt_id =  requests.post(str(plat_host) + str(plat_port) + '/register_optician',
+                            headers={"x-access-token": token},
+                            json={"name": form.name.data,
+                                  "surname": form.surname.data,
+                                  "email": form.email.data,
+                                  "password": hashed_password}).json()
+
+            optician = Optician(id=opt_id["created_id"], name=form.name.data, surname=form.surname.data, email=form.email.data,
                             password=hashed_password)
-        db.session.add(optician)
-        db.session.commit()
-        flash(f'Account created for {form.email.data}!', 'success')
-        return redirect(url_for('login_optician'))
+
+            db.session.add(optician)
+            db.session.commit()
+            flash(f'Account created for {form.email.data}!', 'success')
+            return redirect(url_for('login_optician'))
+
+        except KeyError:
+            return opt_id
+
     return render_template('register_optician.html', title='Register', form=form)
 
 

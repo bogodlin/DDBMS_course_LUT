@@ -2,18 +2,22 @@
   "secret_key": "some_secret_key",
   "platforms": [
     {
+      "host": "http://localhost:",
       "type": "optician",
       "port": 5000
     },
     {
+      "host": "http://localhost:",
       "type": "ophtalmologist",
       "port": 5002
     },
     {
+      "host": "http://localhost:",
       "type": "regular",
       "port": 5001
     },
     {
+      "host": "http://localhost:",
       "type": "qp",
       "port": 5002
     }
