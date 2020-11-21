@@ -8,7 +8,7 @@ import os
 app = Flask(__name__)
 app.config['SECRET_KEY'] = os.getenv('SECRET_KEY')
 #TODO deal with SQLALCHEMY_DATABASE_URI env variable
-app.config['SQLALCHEMY_DATABASE_URI'] = os.getenv('DB_OPHTA')
+app.config['SQLALCHEMY_DATABASE_URI'] = os.getenv('DB_PLAT')
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 db = SQLAlchemy(app)
 bcrypt = Bcrypt(app)

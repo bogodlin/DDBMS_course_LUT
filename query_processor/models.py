@@ -6,7 +6,7 @@ class Citizen(db.Model):
 
     __tablename__ = 'citizen'
 
-    id = db.Column(db.Integer, primary_key=True, autoincrement=False)
+    id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String, nullable=False)
     surname = db.Column(db.String, nullable=False)
     date_of_birth = db.Column(db.Date, nullable=False)

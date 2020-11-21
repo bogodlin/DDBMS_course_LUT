@@ -2,7 +2,7 @@ import os
 import secrets
 from PIL import Image
 from eye_for_eye_optician import app, bcrypt, mail
-from flask import render_template, flash, redirect, url_for, session, request
+from flask import render_template, flash, redirect, url_for, session, request, jsonify
 from eye_for_eye_optician.forms import *
 from eye_for_eye_optician.models import *
 from flask_login import login_user, current_user, logout_user, login_required
@@ -11,12 +11,17 @@ import requests
 import json_parser
 import jwt
 
+
+class Token:
+    token = jwt.encode({'hardware_id': str(os.getenv('HARDWARE_ID'))}, str(app.config['SECRET_KEY']))
+
+
 @app.route("/")
 @app.route("/home")
 def home():
     if current_user.is_authenticated:
         page = request.args.get('page', 1, type=int)
-        created_cases = Case.query.filter_by(optician=current_user.id)\
+        created_cases = Case.query.filter_by(optician=current_user.id) \
             .order_by(Case.date_posted.desc()).paginate(page=page, per_page=5)
         return render_template('home.html', created_cases=created_cases)
 
@@ -38,21 +43,18 @@ def register_optician():
     if form.validate_on_submit():
         hashed_password = bcrypt.generate_password_hash(form.password.data).decode('utf-8')
 
-        token = jwt.encode({'hardware_id': os.getenv('HARDWARE_ID')},
-                           app.config['SECRET_KEY'])
-        plat_host, plat_port = json_parser.retrieve_host('qp'), json_parser.retrieve_port('qp')
-
         try:
+            opt_id = requests.post(
+                str(json_parser.retrieve_host('qp')) + str(json_parser.retrieve_port('qp')) + '/register_optician',
+                headers={"x-access-token": Token.token},
+                json={"name": form.name.data,
+                      "surname": form.surname.data,
+                      "email": form.email.data,
+                      "password": hashed_password}).json()
 
-            opt_id =  requests.post(str(plat_host) + str(plat_port) + '/register_optician',
-                            headers={"x-access-token": token},
-                            json={"name": form.name.data,
-                                  "surname": form.surname.data,
-                                  "email": form.email.data,
-                                  "password": hashed_password}).json()
-
-            optician = Optician(id=opt_id["created_id"], name=form.name.data, surname=form.surname.data, email=form.email.data,
-                            password=hashed_password)
+            optician = Optician(id=opt_id["created_id"], name=form.name.data, surname=form.surname.data,
+                                email=form.email.data,
+                                password=hashed_password)
 
             db.session.add(optician)
             db.session.commit()
@@ -98,18 +100,43 @@ def step1():
     form = CitizenSearchForm()
     if form.validate_on_submit():
         citizen = Citizen.query.filter_by(email=form.email.data).first()
-        if citizen:
-            # TODO Check for possible conflicts
-            session['citizen_id'] = citizen.id
-            return redirect(url_for('step2'))
-        else:
-            em = form.email.data
-            form.email.data = ''
-            flash(f'No registered citizen with {em} email address is found', 'danger')
+
+        # If notfound in the local check the main
+
+        if not citizen:
+            try:
+                citizen = requests.get(
+                    str(json_parser.retrieve_host('qp')) + str(json_parser.retrieve_port('qp')) + '/find_citizen',
+                    headers={"x-access-token": Token.token},
+                    json={"email": form.email.data}).json()
+
+                found_citizen = Citizen(id=citizen["id"], name=citizen["name"], surname=citizen["surname"],
+                                        email=citizen["email"],
+                                        date_of_birth=citizen["date_of_birth"],
+                                        phone_number=citizen["phone_number"],
+                                        # TODO image transfer
+                                        image_file=citizen["image_file"],
+                                        country=citizen["country"])
+
+                db.session.add(found_citizen)
+                db.session.commit()
+
+                citizen = found_citizen
+
+            # Error if not found anywhere
+
+            except KeyError:
+                error_message = citizen['message']
+                flash(f'{error_message}', 'danger')
+                return redirect(url_for('step1'))
+
+        session['citizen_id'] = citizen.id
+        return redirect(url_for('step2'))
+
     return render_template('step1.html', form=form)
 
-def find_free_ophtalmologist():
 
+def find_free_ophtalmologist():
     # TODO find ophto which hasn't got any assigned cases
     free_ophtalmologist_query = """
     select free_ophta.id, count(*) as "Cases"
@@ -124,10 +151,24 @@ def find_free_ophtalmologist():
     free_ophtalmologist = db.engine.execute(free_ophtalmologist_query).first().id
     return free_ophtalmologist
 
+
 def generate_case_code(citizen, current_time):
-    citizen_region_key = Country.query.filter_by(id=citizen.country).first().key
+    # citizen_region_key = Country.query.filter_by(id=citizen.country).first().key
     current_date, time = current_time.strftime("%Y%m%d"), current_time.strftime("%H%M%S")
-    return f"{citizen_region_key}-{citizen.name[0]}{citizen.surname[0]}-{current_date}-{time}"
+    return f"FI-{citizen.name[0]}{citizen.surname[0]}-{current_date}-{time}"
+
+
+def save_case_files(form_picture):
+    random_hex = secrets.token_hex(8)
+    _, f_ext = os.path.splitext(form_picture.filename)
+    picture_fn = random_hex + f_ext
+    picture_path = str(os.path.join('eye_for_eye_optician/static/cases', picture_fn))
+
+    # output_size = (125, 125)
+    i = Image.open(form_picture)
+    # i.thumbnail(output_size)
+    i.save(picture_path)
+    return picture_path
 
 
 @app.route('/step2', methods=['GET', 'POST'])
@@ -136,22 +177,50 @@ def step2():
     form = OpticianUploadForm()
     found_citizen = session.get('citizen_id', None)
     citizen = Citizen.query.filter_by(id=found_citizen).first()
+
     image_file = url_for('static', filename='citizens/' + citizen.image_file)
 
     if form.validate_on_submit():
         current_time = datetime.utcnow()
-        files_filenames = []
+        case_code = generate_case_code(citizen, current_time)
+        filenames = []
         for file in form.files.data:
-            picture_file = save_case_picture(file)
-            files_filenames.append(picture_file)
-        case = Case(citizen=found_citizen, code=generate_case_code(citizen, current_time), optician=current_user.id,
-                    ophtalmologist=find_free_ophtalmologist(),
-                    status=1, optician_comment=form.optician_comment.data,
-                    images=files_filenames)
-        db.session.add(case)
-        db.session.commit()
-        flash('New case have been created', 'success')
-        return redirect(url_for('home'))
+            picture_file = save_case_files(file)
+            filenames.append(picture_file)
+        files = {}
+        for file in range(len(filenames)):
+            files['file{}'.format(file)] = open(filenames[file], 'rb')
+
+        try:
+            request = requests.post(
+                str(json_parser.retrieve_host('qp')) + str(json_parser.retrieve_port('qp')) + '/register_case',
+                headers={"x-access-token": Token.token,
+                         "optician_comment": form.optician_comment.data,
+                         "citizen": str(citizen.id),
+                         "code": case_code,
+                         "optician": str(current_user.id)
+                         },
+                files=files
+            ).json()
+
+            # TODO currently whole image path is saved to the db
+
+            case = Case(id=request['case_id'], code=case_code, citizen=citizen.id, optician=current_user.id,
+                        status=1, optician_comment=form.optician_comment.data,
+                        images=filenames)
+
+            db.session.add(case)
+            db.session.commit()
+
+            flash('New case have been created', 'success')
+            return redirect(url_for('home'))
+
+        except KeyError:
+            error_message = request['message']
+            flash(f'{error_message}', 'danger')
+            return redirect(url_for('step2'))
+
+
 
     return render_template('step2.html', image_file=image_file, citizen=citizen, form=form)
 
@@ -162,6 +231,34 @@ def register_new_citizen():
     form = CitizenRegistrationForm()
     if form.validate_on_submit():
         picture_file = save_citizen_picture(form.picture.data)
+        file = {'file': open('eye_for_eye_optician/static/citizens/' + picture_file, 'rb')}
+
+        try:
+            request = requests.post(
+                str(json_parser.retrieve_host('qp')) + str(json_parser.retrieve_port('qp')) + '/register_citizen',
+                headers={"x-access-token": Token.token,
+                         "name": form.name.data,
+                         "surname": form.surname.data,
+                         "email": form.email.data,
+                         "date_of_birth": str(form.date_of_birth.data),
+                         "phone_number": form.phone_number.data
+                         },
+                files=file
+                ).json()
+
+            new_citizen = Citizen(id=request["created_id"], name=form.name.data, surname=form.surname.data,
+                                email=form.email.data, date_of_birth=form.date_of_birth.data,
+                                  phone_number=form.phone_number.data,
+                                  image_file=picture_file)
+
+            db.session.add(new_citizen)
+            db.session.commit()
+            flash(f'Citizen with email {form.email.data} was registered!', 'success')
+            return redirect(url_for('step1'))
+
+        except KeyError:
+            error_message = request['message']
+            flash(f'{error_message}', 'danger')
 
         new_citizen = Citizen(name=form.name.data, surname=form.surname.data, date_of_birth=form.date_of_birth.data,
                               email=form.email.data, phone_number=form.phone_number.data, image_file=picture_file)
@@ -188,6 +285,7 @@ def save_profile_picture(form_picture):
     i.save(picture_path)
     return picture_fn
 
+
 def save_citizen_picture(form_picture):
     random_hex = secrets.token_hex(8)
     _, f_ext = os.path.splitext(form_picture.filename)
@@ -199,19 +297,6 @@ def save_citizen_picture(form_picture):
     # i.thumbnail(output_size)
     i.save(picture_path)
     return picture_fn
-
-def save_case_picture(form_picture):
-    random_hex = secrets.token_hex(8)
-    _, f_ext = os.path.splitext(form_picture.filename)
-    picture_fn = random_hex + f_ext
-    picture_path = os.path.join('eye_for_eye_ophtalmologist/static/cases', picture_fn)
-
-    # output_size = (125, 125)
-    i = Image.open(form_picture)
-    # i.thumbnail(output_size)
-    i.save(picture_path)
-    return picture_fn
-
 
 
 @app.route("/account", methods=['GET', 'POST'])
@@ -231,6 +316,7 @@ def account():
     image_file = url_for('static', filename='profile_pics/' + current_user.image_file)
     return render_template('account.html', title='Account',
                            image_file=image_file, form=form)
+
 
 # Reset password
 
