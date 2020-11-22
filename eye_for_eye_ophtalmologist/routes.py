@@ -54,44 +54,29 @@ def register_ophtalmologist():
     form = RegistrationForm()
     if form.validate_on_submit():
         hashed_password = bcrypt.generate_password_hash(form.password.data).decode('utf-8')
-        ophtalmologist = Ophtalmologist(name=form.name.data, surname=form.surname.data, email=form.email.data,
-                                        password=hashed_password)
-        db.session.add(ophtalmologist)
-        db.session.commit()
-        flash(f'Account created for {form.email.data}!', 'success')
-        return redirect(url_for('login_ophtalmologist'))
-    return render_template('register_ophtalmologist.html', title='Register', form=form)
 
-# @app.route("/register_ophtalmologist", methods=['GET', 'POST'])
-# def register_ophtalmologist():
-#     if current_user.is_authenticated:
-#         return redirect(url_for('home'))
-#     form = RegistrationForm()
-#     if form.validate_on_submit():
-#         hashed_password = bcrypt.generate_password_hash(form.password.data).decode('utf-8')
-#
-#         try:
-#             request = requests.post(
-#                 str(json_parser.retrieve_host('qp')) + str(json_parser.retrieve_port('qp')) + '/register_ophtalmologist',
-#                 headers={"x-access-token": Token.token},
-#                 json={"name": form.name.data,
-#                       "surname": form.surname.data,
-#                       "email": form.email.data,
-#                       "password": hashed_password}).json()
-#
-#             optician = Optician(id=request["created_id"], name=form.name.data, surname=form.surname.data,
-#                                 email=form.email.data,
-#                                 password=hashed_password)
-#
-#             db.session.add(optician)
-#             db.session.commit()
-#             flash(f'Account created for {form.email.data}!', 'success')
-#             return redirect(url_for('login_ophtalmologist'))
-#
-#         except KeyError:
-#             return request
-#
-#     return render_template('register_ophtalmologist.html', title='Register as Ophtalmologist', form=form)
+        try:
+            request = requests.post(
+                str(json_parser.retrieve_host('qp')) + str(json_parser.retrieve_port('qp')) + '/register_ophtalmologist',
+                headers={"x-access-token": Token.token},
+                json={"name": form.name.data,
+                      "surname": form.surname.data,
+                      "email": form.email.data,
+                      "password": hashed_password}).json()
+
+            optician = Ophtalmologist(id=request["created_id"], name=form.name.data, surname=form.surname.data,
+                                email=form.email.data,
+                                password=hashed_password)
+
+            db.session.add(optician)
+            db.session.commit()
+            flash(f'Account created for {form.email.data}!', 'success')
+            return redirect(url_for('login_ophtalmologist'))
+
+        except KeyError:
+            return request
+
+    return render_template('register_ophtalmologist.html', title='Register as Ophtalmologist', form=form)
 
 @app.route("/login_ophtalmologist", methods=['GET', 'POST'])
 def login_ophtalmologist():
