@@ -1,14 +1,32 @@
 from PIL import Image
-from eye_for_eye_ophtalmologist import app, bcrypt, mail
-from flask import render_template, flash, redirect, url_for, session, request
+from eye_for_eye_ophtalmologist import app, bcrypt, mail, db
+from flask import render_template, flash, redirect, url_for, session, request, jsonify
 from eye_for_eye_ophtalmologist.forms import *
-from eye_for_eye_ophtalmologist.models import *
+from eye_for_eye_ophtalmologist.models import Ophtalmologist, Case
 from flask_login import login_user, current_user, logout_user, login_required
 from flask_mail import Message
 import requests, json_parser, os, secrets, jwt
+from functools import wraps
 
 class Token:
     token = jwt.encode({'hardware_id': str(os.getenv('HARDWARE_ID'))}, str(app.config['SECRET_KEY']))
+
+def token_required(f):
+    @wraps(f)
+    def decorated(*args, **kwargs):
+        token = request.headers['x-access-token']
+
+        if not token:
+            return jsonify({'message' : 'Token is missing!'}), 403
+
+        try:
+            data = jwt.decode(token, app.config['SECRET_KEY'])
+        except:
+            return jsonify({'message' : 'Token is invalid!'}), 403
+
+        return f(*args, **kwargs)
+
+    return decorated
 
 @app.route("/")
 @app.route("/home")
@@ -135,6 +153,28 @@ def account():
     return render_template('account.html', title='Account',
                            image_file=image_file, form=form)
 
+# Receive case from platform
+
+@app.route("/receive_new_case", methods=['GET', 'POST'])
+def receive_new_case():
+    print('Initiated')
+    headers = request.headers
+    names = [name for name in request.files]
+    filenames = []
+    for file in names:
+        content = request.files[file]
+        content.save(os.path.join('eye_for_eye_ophtalmologist/static/cases', content.filename))
+        filenames.append(content.filename)
+
+    case = Case(id=int(headers['id']), code=headers['code'],
+                ophtalmologist=int(headers['ophtalmologist']),
+                status=int(headers['status']), optician_comment=headers['optician_comment'],
+                images=filenames)
+
+    db.session.add(case)
+    db.session.commit()
+
+    return jsonify({'message': 'Success'})
 
 # View case
 

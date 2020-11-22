@@ -11,7 +11,6 @@ import requests
 import json_parser
 import jwt
 
-
 class Token:
     token = jwt.encode({'hardware_id': str(os.getenv('HARDWARE_ID'))}, str(app.config['SECRET_KEY']))
 
@@ -215,9 +214,8 @@ def step2():
             flash('New case have been created', 'success')
             return redirect(url_for('home'))
 
-        except KeyError:
-            error_message = request['message']
-            flash(f'{error_message}', 'danger')
+        except Exception:
+            flash(f'Failed to save a case', 'danger')
             return redirect(url_for('step2'))
 
     return render_template('step2.html', image_file=image_file, citizen=citizen, form=form)

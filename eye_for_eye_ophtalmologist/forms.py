@@ -2,7 +2,7 @@ from flask_wtf import FlaskForm
 from flask_wtf.file import FileField, FileAllowed, FileRequired
 from wtforms import StringField, PasswordField, SubmitField, BooleanField, MultipleFileField, TextAreaField, DateField
 from wtforms.validators import DataRequired, Length, Email, EqualTo, ValidationError
-from eye_for_eye_ophtalmologist.models import Ophtalmologist, Citizen
+from eye_for_eye_ophtalmologist.models import Ophtalmologist, Case
 
 # Ophtalmologist Registration form
 

@@ -3,10 +3,14 @@ from flask import jsonify, request, make_response
 import jwt
 import requests
 import datetime
+import json_parser
 from functools import wraps
 import os
 from query_processor.models import *
 from PIL import Image
+
+class Token:
+    token = jwt.encode({'hardware_id': str(os.getenv('HARDWARE_ID'))}, str(app.config['SECRET_KEY']))
 
 def token_required(f):
     @wraps(f)
@@ -76,7 +80,32 @@ def register_case():
     db.session.add(case)
     db.session.commit()
 
-    return jsonify({"case_id": case.id})
+    files = {}
+    for file in range(len(filenames)):
+        files['file{}'.format(file)] = open('query_processor/static/cases/' + filenames[file], 'rb')
+
+    try:
+        requests.post(
+            str(json_parser.retrieve_host('ophtalmologist')) + str(json_parser.retrieve_port('ophtalmologist')) + '/receive_new_case',
+            headers={"x-access-token": Token.token,
+                     "id": str(case.id),
+                     "optician_comment": str(case.optician_comment),
+                     "citizen": str(case.citizen),
+                     "code": str(case.code),
+                     "optician": str(case.optician),
+                     "ophtalmologist": str(case.ophtalmologist),
+                     "status": str(case.status)
+                     },
+            files=files
+        ).json()
+
+        # if request_to_ophta['message'] == 'Success':
+        #     return 'Test'
+
+        return jsonify({"case_id": case.id})
+
+    except TypeError:
+        return jsonify({'message' : 'Saving error!'})
 
 def find_free_ophtalmologist():
 
