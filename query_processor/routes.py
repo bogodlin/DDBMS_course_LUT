@@ -123,6 +123,26 @@ def find_free_ophtalmologist():
     free_ophtalmologist = db.engine.execute(free_ophtalmologist_query).first().id
     return free_ophtalmologist
 
+@app.route("/case/<case_id>/reject", methods=['POST', 'GET'])
+@token_required
+def reject_case(case_id):
+    content = request.json
+    case = Case.query.get_or_404(case_id)
+    case.status, case.ophtalmologist_comment = 2, content['ophtalmologist_comment']
+    db.session.commit()
+
+    return jsonify({'message': 'Success'})
+
+@app.route("/case/<case_id>/accept", methods=['POST', 'GET'])
+@token_required
+def accept_case(case_id):
+    content = request.json
+    case = Case.query.get_or_404(case_id)
+    case.status, case.ophtalmologist_comment = 3, content['ophtalmologist_comment']
+    db.session.commit()
+
+    return jsonify({'message': 'Success'})
+
 # Citizens
 
 @app.route('/find_citizen', methods=["GET"])

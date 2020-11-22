@@ -186,10 +186,21 @@ def view_case(case_code):
 def reject_case(case_id):
     ophtalmologist_comment = session.get('ophtalmologist_comment', None)
     case = Case.query.get_or_404(case_id)
-    case.status, case.ophtalmologist_comment = 2, ophtalmologist_comment
-    db.session.commit()
-    flash(f'Case {case.code} was rejected', 'warning')
-    return redirect(url_for('home'))
+
+    try:
+        request = requests.post(
+            str(json_parser.retrieve_host('qp')) + str(json_parser.retrieve_port('qp')) + '/case/' + str(case.id) + '/reject',
+            headers={"x-access-token": Token.token},
+            json={"ophtalmologist_comment": case.ophtalmologist_comment}).json()
+
+        case.status, case.ophtalmologist_comment = 2, ophtalmologist_comment
+
+        db.session.commit()
+        flash(f'Case {case.code} was rejected', 'warning')
+        return redirect(url_for('home'))
+
+    except KeyError:
+        return request
 
 
 # Accept case
@@ -199,10 +210,22 @@ def reject_case(case_id):
 def accept_case(case_id):
     ophtalmologist_comment = session.get('ophtalmologist_comment', None)
     case = Case.query.get_or_404(case_id)
-    case.status, case.ophtalmologist_comment = 3, ophtalmologist_comment
-    db.session.commit()
-    flash(f'Case {case.code} was accepted', 'success')
-    return redirect(url_for('home'))
+
+    try:
+        request = requests.post(
+            str(json_parser.retrieve_host('qp')) + str(json_parser.retrieve_port('qp')) + '/case/' + str(
+                case.id) + '/accept',
+            headers={"x-access-token": Token.token},
+            json={"ophtalmologist_comment": case.ophtalmologist_comment}).json()
+
+        case.status, case.ophtalmologist_comment = 3, ophtalmologist_comment
+
+        db.session.commit()
+        flash(f'Case {case.code} was accepted', 'success')
+        return redirect(url_for('home'))
+
+    except KeyError:
+        return request
 
 
 # Reset password

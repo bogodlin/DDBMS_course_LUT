@@ -80,10 +80,8 @@ class Case(db.Model):
     date_posted = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
     citizen = db.Column(db.Integer, db.ForeignKey('citizen.id'))
     optician = db.Column(db.Integer, db.ForeignKey('optician.id'))
-    # ophtalmologist = db.Column(db.Integer, db.ForeignKey('ophtalmologist.id'))
     status = db.Column(db.Integer, db.ForeignKey('status.id'))
     optician_comment = db.Column(db.String, nullable=True)
-    # ophtalmologist_comment = db.Column(db.String, nullable=True)
     images = db.Column(ARRAY(db.String))
 
     def __repr__(self):
