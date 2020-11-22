@@ -220,8 +220,6 @@ def step2():
             flash(f'{error_message}', 'danger')
             return redirect(url_for('step2'))
 
-
-
     return render_template('step2.html', image_file=image_file, citizen=citizen, form=form)
 
 
@@ -244,10 +242,10 @@ def register_new_citizen():
                          "phone_number": form.phone_number.data
                          },
                 files=file
-                ).json()
+            ).json()
 
             new_citizen = Citizen(id=request["created_id"], name=form.name.data, surname=form.surname.data,
-                                email=form.email.data, date_of_birth=form.date_of_birth.data,
+                                  email=form.email.data, date_of_birth=form.date_of_birth.data,
                                   phone_number=form.phone_number.data,
                                   image_file=picture_file)
 
@@ -323,7 +321,7 @@ def account():
 def send_reset_email(user):
     token = user.get_reset_token()
     msg = Message('Password Reset Request',
-                  sender='Eye for eye',
+                  sender=app.config['MAIL_USERNAME'],
                   recipients=[user.email])
     msg.body = f'''Optician intranet.
 To reset your password, visit the following link:

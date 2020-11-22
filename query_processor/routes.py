@@ -8,10 +8,6 @@ import os
 from query_processor.models import *
 from PIL import Image
 
-# import logging
-#
-# logging.basicConfig(filename='qp.log', level=logging.INFO)
-
 def token_required(f):
     @wraps(f)
     def decorated(*args, **kwargs):
@@ -29,18 +25,6 @@ def token_required(f):
 
     return decorated
 
-# @app.route('/get_case/<case_id>', methods=["GET"])
-# @token_required
-# def get_case(case_id):
-#     case = Case.query.filter_by(id=case_id).first()
-#
-#     case_data = {}
-#     case_data['id'] = case.id
-#     case_data['code'] = case.code
-#     case_data['citizen'] = case.citizen
-#
-#     return jsonify({'user' : case_data})
-
 @app.route('/')
 def home():
     return 'Welcome to the E4E platform'
@@ -57,6 +41,19 @@ def register_optician():
     db.session.commit()
 
     return jsonify({"created_id": optician.id})
+
+# Ophtalmologists
+
+@app.route('/register_ophtalmologist', methods=["POST"])
+@token_required
+def register_ophtalmologist():
+    content = request.json
+    ophtalmologist = Ophtalmologist(name=content["name"], surname=content["surname"], email=content["email"],
+                        password=content["password"])
+    db.session.add(ophtalmologist)
+    db.session.commit()
+
+    return jsonify({"created_id": ophtalmologist.id})
 
 # Cases
 
@@ -126,3 +123,10 @@ def register_citizen():
     db.session.commit()
 
     return jsonify({"created_id": citizen.id})
+
+@app.route('/test_log', methods=["GET"])
+@token_required
+def test_log():
+    # logging.info('Have not found citizen by {}'.format(content['email']))
+
+    return 'Log'
