@@ -30,7 +30,7 @@ class Optician(db.Model):
     password = db.Column(db.String(60), nullable=False)
     image_file = db.Column(db.String(20), nullable=False, default='optician_default.png')
     active = db.Column(db.Boolean, default=False)
-    country = db.Column(db.Integer, db.ForeignKey('country.id'))
+    organisation = db.Column(db.Integer, db.ForeignKey('organisation.id'))
 
     cases = db.relationship('Case', backref='case_optician', lazy=True)
 
@@ -62,8 +62,9 @@ class Ophtalmologist(db.Model):
     email = db.Column(db.String(120), nullable=False)
     password = db.Column(db.String(60), nullable=False)
     image_file = db.Column(db.String(20), nullable=False, default='ophtalmologist_default.png')
-    country = db.Column(db.Integer, db.ForeignKey('country.id'))
+    # country = db.Column(db.Integer, db.ForeignKey('country.id'))
     cases = db.relationship('Case', backref='case_ophtalmologist', lazy=True)
+    organisation = db.Column(db.Integer, db.ForeignKey('organisation.id'))
 
     def __repr__(self):
         return f"Ophtalmologist('{self.name}','{self.surname}', '{self.email}')"
@@ -108,3 +109,16 @@ class Country(db.Model):
 
     def __repr__(self):
         return f"Country('{self.id}','{self.name}','{self.key}')"
+
+class Organisation(db.Model):
+
+    __tablename__ = 'organisation'
+
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String, nullable=False)
+    country = db.Column(db.Integer, db.ForeignKey('country.id'))
+    hardware_id = db.Column(db.String, nullable=False)
+    service_url = db.Column(db.String, nullable=False)
+
+    def __repr__(self):
+        return f"Organisation('{self.name}', '{self.surname}', '{self.email}', '{self.phone_number}')"

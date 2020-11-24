@@ -1,16 +1,14 @@
 from query_processor import app
-from flask import jsonify, request, make_response
+from flask import jsonify, request
 import jwt
 import requests
-import datetime
-import json_parser
 from functools import wraps
 import os
 from query_processor.models import *
 from PIL import Image
 
 class Token:
-    token = jwt.encode({'hardware_id': str(os.getenv('HARDWARE_ID'))}, str(app.config['SECRET_KEY']))
+    token = jwt.encode({'hardware_id': app.config["ID"]}, app.config['SECRET_KEY'])
 
 def token_required(f):
     @wraps(f)
@@ -39,8 +37,11 @@ def home():
 @token_required
 def register_optician():
     content = request.json
+    token = request.headers['x-access-token']
+    hardware_id = jwt.decode(token, app.config['SECRET_KEY'])['hardware_id']
+    organisation = Organisation.query.filter_by(hardware_id=hardware_id).first()
     optician = Optician(name=content["name"], surname=content["surname"], email=content["email"],
-                        password=content["password"])
+                        password=content["password"], organisation=organisation.id)
     db.session.add(optician)
     db.session.commit()
 
@@ -52,8 +53,11 @@ def register_optician():
 @token_required
 def register_ophtalmologist():
     content = request.json
+    token = request.headers['x-access-token']
+    hardware_id = jwt.decode(token, app.config['SECRET_KEY'])['hardware_id']
+    organisation = Organisation.query.filter_by(hardware_id=hardware_id).first()
     ophtalmologist = Ophtalmologist(name=content["name"], surname=content["surname"], email=content["email"],
-                        password=content["password"])
+                        password=content["password"], organisation=organisation.id)
     db.session.add(ophtalmologist)
     db.session.commit()
 
@@ -72,8 +76,11 @@ def register_case():
         content.save(os.path.join('query_processor/static/cases', content.filename))
         filenames.append(content.filename)
 
+    selected_ophtalmologist = find_free_ophtalmologist()
+    ophtalmologist_organisation_url = Organisation.query.filter_by(id=Ophtalmologist.query.filter_by(id=selected_ophtalmologist).first().organisation).first().service_url
+
     case = Case(citizen=int(headers['citizen']), code=headers['code'], optician=int(headers['optician']),
-                ophtalmologist=find_free_ophtalmologist(),
+                ophtalmologist=selected_ophtalmologist,
                 status=1, optician_comment=headers['optician_comment'],
                 images=filenames)
 
@@ -86,7 +93,7 @@ def register_case():
 
     try:
         requests.post(
-            str(json_parser.retrieve_host('ophtalmologist')) + str(json_parser.retrieve_port('ophtalmologist')) + '/receive_new_case',
+            ophtalmologist_organisation_url + '/receive_new_case',
             headers={"x-access-token": Token.token,
                      "id": str(case.id),
                      "optician_comment": str(case.optician_comment),
@@ -167,15 +174,8 @@ def register_citizen():
 
     citizen = Citizen(name=headers["name"], surname=headers["surname"], email=headers["email"],
                         date_of_birth=headers["date_of_birth"], phone_number=headers["phone_number"],
-                      image_file=content.filename)
+                      image_file=content.filename, country=1) #TODO remove hardcoded country
     db.session.add(citizen)
     db.session.commit()
 
     return jsonify({"created_id": citizen.id})
-
-@app.route('/test_log', methods=["GET"])
-@token_required
-def test_log():
-    # logging.info('Have not found citizen by {}'.format(content['email']))
-
-    return 'Log'

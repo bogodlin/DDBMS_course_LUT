@@ -5,11 +5,11 @@ from eye_for_eye_ophtalmologist.forms import *
 from eye_for_eye_ophtalmologist.models import Ophtalmologist, Case
 from flask_login import login_user, current_user, logout_user, login_required
 from flask_mail import Message
-import requests, json_parser, os, secrets, jwt
+import requests, os, secrets, jwt
 from functools import wraps
 
 class Token:
-    token = jwt.encode({'hardware_id': str(os.getenv('HARDWARE_ID'))}, str(app.config['SECRET_KEY']))
+    token = jwt.encode({'hardware_id': app.config["ID"]}, app.config['SECRET_KEY'])
 
 def token_required(f):
     @wraps(f)
@@ -57,7 +57,7 @@ def register_ophtalmologist():
 
         try:
             request = requests.post(
-                str(json_parser.retrieve_host('qp')) + str(json_parser.retrieve_port('qp')) + '/register_ophtalmologist',
+                app.config["QP"] + '/register_ophtalmologist',
                 headers={"x-access-token": Token.token},
                 json={"name": form.name.data,
                       "surname": form.surname.data,
@@ -188,8 +188,7 @@ def reject_case(case_id):
     case = Case.query.get_or_404(case_id)
 
     try:
-        request = requests.post(
-            str(json_parser.retrieve_host('qp')) + str(json_parser.retrieve_port('qp')) + '/case/' + str(case.id) + '/reject',
+        request = requests.post(app.config["QP"] + '/case/' + str(case.id) + '/reject',
             headers={"x-access-token": Token.token},
             json={"ophtalmologist_comment": case.ophtalmologist_comment}).json()
 
@@ -213,7 +212,7 @@ def accept_case(case_id):
 
     try:
         request = requests.post(
-            str(json_parser.retrieve_host('qp')) + str(json_parser.retrieve_port('qp')) + '/case/' + str(
+            app.config["QP"] + '/case/' + str(
                 case.id) + '/accept',
             headers={"x-access-token": Token.token},
             json={"ophtalmologist_comment": case.ophtalmologist_comment}).json()

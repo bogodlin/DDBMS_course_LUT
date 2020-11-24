@@ -8,11 +8,10 @@ from eye_for_eye_optician.models import *
 from flask_login import login_user, current_user, logout_user, login_required
 from flask_mail import Message
 import requests
-import json_parser
 import jwt
 
 class Token:
-    token = jwt.encode({'hardware_id': str(os.getenv('HARDWARE_ID'))}, str(app.config['SECRET_KEY']))
+    token = jwt.encode({'hardware_id': app.config["ID"]}, app.config['SECRET_KEY'])
 
 
 @app.route("/")
@@ -44,7 +43,7 @@ def register_optician():
 
         try:
             opt_id = requests.post(
-                str(json_parser.retrieve_host('qp')) + str(json_parser.retrieve_port('qp')) + '/register_optician',
+                app.config["QP"] + '/register_optician',
                 headers={"x-access-token": Token.token},
                 json={"name": form.name.data,
                       "surname": form.surname.data,
@@ -105,7 +104,7 @@ def step1():
         if not citizen:
             try:
                 citizen = requests.get(
-                    str(json_parser.retrieve_host('qp')) + str(json_parser.retrieve_port('qp')) + '/find_citizen',
+                    app.config["QP"] + '/find_citizen',
                     headers={"x-access-token": Token.token},
                     json={"email": form.email.data}).json()
 
@@ -192,7 +191,7 @@ def step2():
 
         try:
             request = requests.post(
-                str(json_parser.retrieve_host('qp')) + str(json_parser.retrieve_port('qp')) + '/register_case',
+                app.config["QP"] + '/register_case',
                 headers={"x-access-token": Token.token,
                          "optician_comment": form.optician_comment.data,
                          "citizen": str(citizen.id),
@@ -231,7 +230,7 @@ def register_new_citizen():
 
         try:
             request = requests.post(
-                str(json_parser.retrieve_host('qp')) + str(json_parser.retrieve_port('qp')) + '/register_citizen',
+                app.config["QP"] + '/register_citizen',
                 headers={"x-access-token": Token.token,
                          "name": form.name.data,
                          "surname": form.surname.data,
