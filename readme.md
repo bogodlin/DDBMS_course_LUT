@@ -19,4 +19,4 @@ By the scope of the involved process participants the platform should be deploye
 
 # Prototype architecture
 
-![readmeimages/prototype_architecture.png](readmeimages/prototype_architecture.png)
+TBA
