@@ -1,13 +1,32 @@
-import os
-import secrets
 from PIL import Image
-from eye_for_eye_ophtalmologist import app, bcrypt, mail
-from flask import render_template, flash, redirect, url_for, session, request
+from eye_for_eye_ophtalmologist import app, bcrypt, mail, db
+from flask import render_template, flash, redirect, url_for, session, request, jsonify
 from eye_for_eye_ophtalmologist.forms import *
-from eye_for_eye_ophtalmologist.models import *
+from eye_for_eye_ophtalmologist.models import Ophtalmologist, Case
 from flask_login import login_user, current_user, logout_user, login_required
 from flask_mail import Message
+import requests, os, secrets, jwt
+from functools import wraps
 
+class Token:
+    token = jwt.encode({'hardware_id': app.config["ID"]}, app.config['SECRET_KEY'])
+
+def token_required(f):
+    @wraps(f)
+    def decorated(*args, **kwargs):
+        token = request.headers['x-access-token']
+
+        if not token:
+            return jsonify({'message' : 'Token is missing!'}), 403
+
+        try:
+            data = jwt.decode(token, app.config['SECRET_KEY'])
+        except:
+            return jsonify({'message' : 'Token is invalid!'}), 403
+
+        return f(*args, **kwargs)
+
+    return decorated
 
 @app.route("/")
 @app.route("/home")
@@ -35,14 +54,29 @@ def register_ophtalmologist():
     form = RegistrationForm()
     if form.validate_on_submit():
         hashed_password = bcrypt.generate_password_hash(form.password.data).decode('utf-8')
-        ophtalmologist = Ophtalmologist(name=form.name.data, surname=form.surname.data, email=form.email.data,
-                                        password=hashed_password)
-        db.session.add(ophtalmologist)
-        db.session.commit()
-        flash(f'Account created for {form.email.data}!', 'success')
-        return redirect(url_for('login_ophtalmologist'))
-    return render_template('register_ophtalmologist.html', title='Register', form=form)
 
+        try:
+            request = requests.post(
+                app.config["QP"] + '/register_ophtalmologist',
+                headers={"x-access-token": Token.token},
+                json={"name": form.name.data,
+                      "surname": form.surname.data,
+                      "email": form.email.data,
+                      "password": hashed_password}).json()
+
+            optician = Ophtalmologist(id=request["created_id"], name=form.name.data, surname=form.surname.data,
+                                email=form.email.data,
+                                password=hashed_password)
+
+            db.session.add(optician)
+            db.session.commit()
+            flash(f'Account created for {form.email.data}!', 'success')
+            return redirect(url_for('login_ophtalmologist'))
+
+        except KeyError:
+            return request
+
+    return render_template('register_ophtalmologist.html', title='Register as Ophtalmologist', form=form)
 
 @app.route("/login_ophtalmologist", methods=['GET', 'POST'])
 def login_ophtalmologist():
@@ -104,6 +138,28 @@ def account():
     return render_template('account.html', title='Account',
                            image_file=image_file, form=form)
 
+# Receive case from platform
+
+@app.route("/receive_new_case", methods=['GET', 'POST'])
+def receive_new_case():
+    print('Initiated')
+    headers = request.headers
+    names = [name for name in request.files]
+    filenames = []
+    for file in names:
+        content = request.files[file]
+        content.save(os.path.join('eye_for_eye_ophtalmologist/static/cases', content.filename))
+        filenames.append(content.filename)
+
+    case = Case(id=int(headers['id']), code=headers['code'],
+                ophtalmologist=int(headers['ophtalmologist']),
+                status=int(headers['status']), optician_comment=headers['optician_comment'],
+                images=filenames)
+
+    db.session.add(case)
+    db.session.commit()
+
+    return jsonify({'message': 'Success'})
 
 # View case
 
@@ -130,10 +186,20 @@ def view_case(case_code):
 def reject_case(case_id):
     ophtalmologist_comment = session.get('ophtalmologist_comment', None)
     case = Case.query.get_or_404(case_id)
-    case.status, case.ophtalmologist_comment = 2, ophtalmologist_comment
-    db.session.commit()
-    flash(f'Case {case.code} was rejected', 'warning')
-    return redirect(url_for('home'))
+
+    try:
+        request = requests.post(app.config["QP"] + '/case/' + str(case.id) + '/reject',
+            headers={"x-access-token": Token.token},
+            json={"ophtalmologist_comment": case.ophtalmologist_comment}).json()
+
+        case.status, case.ophtalmologist_comment = 2, ophtalmologist_comment
+
+        db.session.commit()
+        flash(f'Case {case.code} was rejected', 'warning')
+        return redirect(url_for('home'))
+
+    except KeyError:
+        return request
 
 
 # Accept case
@@ -143,10 +209,22 @@ def reject_case(case_id):
 def accept_case(case_id):
     ophtalmologist_comment = session.get('ophtalmologist_comment', None)
     case = Case.query.get_or_404(case_id)
-    case.status, case.ophtalmologist_comment = 3, ophtalmologist_comment
-    db.session.commit()
-    flash(f'Case {case.code} was accepted', 'success')
-    return redirect(url_for('home'))
+
+    try:
+        request = requests.post(
+            app.config["QP"] + '/case/' + str(
+                case.id) + '/accept',
+            headers={"x-access-token": Token.token},
+            json={"ophtalmologist_comment": case.ophtalmologist_comment}).json()
+
+        case.status, case.ophtalmologist_comment = 3, ophtalmologist_comment
+
+        db.session.commit()
+        flash(f'Case {case.code} was accepted', 'success')
+        return redirect(url_for('home'))
+
+    except KeyError:
+        return request
 
 
 # Reset password
@@ -154,7 +232,7 @@ def accept_case(case_id):
 def send_reset_email(user):
     token = user.get_reset_token()
     msg = Message('Password Reset Request',
-                  sender='Eye for eye',
+                  sender=app.config['MAIL_USERNAME'],
                   recipients=[user.email])
     msg.body = f'''Ophtalmologist intranet.
 To reset your password, visit the following link:
