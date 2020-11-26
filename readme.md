@@ -18,5 +18,6 @@ The platform should include the following functionality:
 By the scope of the involved process participants the platform should be deployed as a distributed database system which could be accessible by different groups of users from different sites as the system should operate in the EU countries where its components (servers, processors, etc.) are located. This would enable a sufficient level of systems’ concurrency and provide reliable web service for the users.
 
 # Prototype architecture
+Every optician and ophtalmologist organisation has it's own service and own database.
 
-![readmeimages/prototype_architecture.png](readmeimages/prototype_architecture.png)
+![Alt text](./readmeimages/Components.svg)

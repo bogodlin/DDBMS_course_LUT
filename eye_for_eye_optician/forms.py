@@ -91,7 +91,7 @@ class CitizenRegistrationForm(FlaskForm):
 
     #TODO Add country
 
-    picture = FileField('Add Picture', validators=[FileAllowed(['jpg', 'png']), DataRequired()])
+    picture = FileField('Add Picture', validators=[FileAllowed(['jpg', 'png', 'pdf']), DataRequired()])
 
     submit = SubmitField('Register Citizen')
 

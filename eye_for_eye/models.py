@@ -17,7 +17,7 @@ class Citizen(db.Model):
     country = db.Column(db.Integer, db.ForeignKey('country.id'))
 
     def __repr__(self):
-        return f"Citizen('{self.name}', '{self.surname}', '{self.email}', '{self.phone_number}')"
+        return str(dict((col, getattr(self, col)) for col in self.__table__.columns.keys()))
 
 class Case(db.Model):
 
@@ -35,4 +35,4 @@ class Case(db.Model):
     images = db.Column(ARRAY(db.String))
 
     def __repr__(self):
-        return f"Case('{self.id}-{self.code}-{self.status}')"
+        return str(dict((col, getattr(self, col)) for col in self.__table__.columns.keys()))
