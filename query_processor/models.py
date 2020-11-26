@@ -17,7 +17,7 @@ class Citizen(db.Model):
     country = db.Column(db.Integer, db.ForeignKey('country.id'))
 
     def __repr__(self):
-        return f"Citizen('{self.name}', '{self.surname}', '{self.email}', '{self.phone_number}')"
+        return str(dict((col, getattr(self, col)) for col in self.__table__.columns.keys()))
 
 class Optician(db.Model):
 
@@ -35,7 +35,7 @@ class Optician(db.Model):
     cases = db.relationship('Case', backref='case_optician', lazy=True)
 
     def __repr__(self):
-        return f"Optician('{self.name}','{self.surname}', '{self.email}')"
+        return str(dict((col, getattr(self, col)) for col in self.__table__.columns.keys()))
 
     # def get_reset_token(self, expires_sec=1800):
     #     s = Serializer(app.config['SECRET_KEY'], expires_sec)
@@ -67,7 +67,7 @@ class Ophtalmologist(db.Model):
     organisation = db.Column(db.Integer, db.ForeignKey('organisation.id'))
 
     def __repr__(self):
-        return f"Ophtalmologist('{self.name}','{self.surname}', '{self.email}')"
+        return str(dict((col, getattr(self, col)) for col in self.__table__.columns.keys()))
 
 
 class Status(db.Model):
@@ -79,7 +79,7 @@ class Status(db.Model):
     cases = db.relationship('Case', backref='casestatus', lazy=True)
 
     def __repr__(self):
-        return f"Status('{self.id}','{self.name}')"
+        return str(dict((col, getattr(self, col)) for col in self.__table__.columns.keys()))
 
 class Case(db.Model):
 
@@ -97,7 +97,7 @@ class Case(db.Model):
     images = db.Column(ARRAY(db.String))
 
     def __repr__(self):
-        return f"Case('{self.id}')"
+        return str(dict((col, getattr(self, col)) for col in self.__table__.columns.keys()))
 
 class Country(db.Model):
     __tablename__ = 'country'
@@ -108,7 +108,7 @@ class Country(db.Model):
     citizens = db.relationship('Citizen', backref='citizen_status', lazy=True)
 
     def __repr__(self):
-        return f"Country('{self.id}','{self.name}','{self.key}')"
+        return str(dict((col, getattr(self, col)) for col in self.__table__.columns.keys()))
 
 class Organisation(db.Model):
 
@@ -121,4 +121,4 @@ class Organisation(db.Model):
     service_url = db.Column(db.String, nullable=False)
 
     def __repr__(self):
-        return f"Organisation('{self.name}', '{self.surname}', '{self.email}', '{self.phone_number}')"
+        return str(dict((col, getattr(self, col)) for col in self.__table__.columns.keys()))

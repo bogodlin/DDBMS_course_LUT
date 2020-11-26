@@ -24,7 +24,7 @@ class Ophtalmologist(db.Model, UserMixin):
     cases = db.relationship('Case', backref='case_ophtalmologist', lazy=True)
 
     def __repr__(self):
-        return f"Ophtalmologist('{self.name}','{self.surname}', '{self.email}')"
+        return str(dict((col, getattr(self, col)) for col in self.__table__.columns.keys()))
 
     def get_reset_token(self, expires_sec=1800):
         s = Serializer(app.config['SECRET_KEY'], expires_sec)
@@ -50,7 +50,7 @@ class Status(db.Model):
     cases = db.relationship('Case', backref='casestatus', lazy=True)
 
     def __repr__(self):
-        return f"Status('{self.id}','{self.name}')"
+        return str(dict((col, getattr(self, col)) for col in self.__table__.columns.keys()))
 
 class Case(db.Model):
 
@@ -66,4 +66,4 @@ class Case(db.Model):
     images = db.Column(ARRAY(db.String))
 
     def __repr__(self):
-        return f"Case('{self.id}')"
+        return str(dict((col, getattr(self, col)) for col in self.__table__.columns.keys()))
