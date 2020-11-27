@@ -28,11 +28,11 @@ def about():
 
 @app.route("/view_case/<case_code>/<token>", methods=['GET', 'POST'])
 def view_case(case_code,token):
-
     try:
         jwt.decode(token, str(app.config['SECRET_KEY']))
         case = Case.query.filter_by(code=case_code).first()
-        return render_template('view_case.html', case=case)
+        citizen = Citizen.query.filter_by(id=case.citizen).first()
+        return render_template('view_case.html', case=case, citizen=citizen)
 
     except Exception:
         flash('Authentication failed', 'danger')

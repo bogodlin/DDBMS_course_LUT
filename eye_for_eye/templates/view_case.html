@@ -4,37 +4,34 @@
 
     <div class="content-section">
         <div class="media">
+            {# TODO Add citizen image #}
+            <img class="rounded-circle account-img"
+                 src="https://www.flaticon.com/svg/static/icons/svg/2494/2494952.svg">
             <div class="media-body">
-                <h2 class="account-heading">{{ case.code }}</h2>
-                <p class="text-secondary">{{ case.optician_comment }}</p>
+                <h2 class="account-heading">{{ citizen.name }} {{ citizen.surname }}</h2>
+                <p class="text-secondary"><b>Email:</b> {{ citizen.email }}</p>
+                <p class="text-secondary"><b>Phone number:</b> {{ citizen.phone_number }}</p>
+                <p class="text-secondary"><b>Date of birth:</b> {{ citizen.date_of_birth }}</p>
             </div>
         </div>
-
-        <br>
     </div>
 
     <div class="content-section">
-
         <div class="media">
             <div class="media-body">
+                {% if case.status == 3 %}
+                    <small class="text-success">Accepted</small>
+                {% else %}
+                    <small class="text-danger">Rejected</small>
+                {% endif %}
 
-                <!-- Images -->
+                <p class="text-secondary">{{ case.code }}</p>
 
-                {% for case_image in case.images %}
 
-                    <div class="wm-zoom-container my-zoom-1">
-                        <div class="wm-zoom-box">
-                            <img id="zoomed_image"
-                                 src="{{ url_for('static', filename='cases/' + case_image) }} "
-                                 class="wm-zoom-default-img" alt="alternative text"
-                                 data-hight-src="{{ url_for('static', filename='cases/' + case_image) }} "
-                                 class="wm-zoom-default-img" data-loader-src="img/loader.gif">
-                        </div>
-                    </div>
-
-                    <br>
-
-                {% endfor %}
+                <b><p class="article-title">Optician comment:</p></b>
+                <p class="article-content">{{ case.optician_comment }}</p>
+                <b><p class="article-title">Ophtalmologist comment:</p></b>
+                <p class="article-content">{{ case.ophtalmologist_comment }}</p>
             </div>
         </div>
     </div>
