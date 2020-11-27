@@ -3,8 +3,7 @@
   <component name="ProjectModuleManager">
     <modules>
       <module fileurl="file://$PROJECT_DIR$/.idea/DDBMS.iml" filepath="$PROJECT_DIR$/.idea/DDBMS.iml" />
-      <module fileurl="file://$USER_HOME$/Downloads/api_example/.idea/api_example.iml" filepath="$USER_HOME$/Downloads/api_example/.idea/api_example.iml" />
-      <module fileurl="file://$USER_HOME$/Downloads/flask api authentication jwt/.idea/flask api authentication jwt.iml" filepath="$USER_HOME$/Downloads/flask api authentication jwt/.idea/flask api authentication jwt.iml" />
+      <module fileurl="file://$USER_HOME$/Downloads/room-booking-app-master/.idea/room-booking-app-master.iml" filepath="$USER_HOME$/Downloads/room-booking-app-master/.idea/room-booking-app-master.iml" />
     </modules>
   </component>
 </project>

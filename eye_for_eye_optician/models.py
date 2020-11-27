@@ -23,7 +23,7 @@ class Citizen(db.Model):
     phone_number = db.Column(db.String(15), nullable=False)
     image_file = db.Column(db.String(20), nullable=False, default='citizen_default.png')
     cases = db.relationship('Case', backref='case_citizen', lazy=True)
-    country = db.Column(db.Integer, db.ForeignKey('country.id'))
+    # country = db.Column(db.Integer, db.ForeignKey('country.id'))
 
     def __repr__(self):
         return str(dict((col, getattr(self, col)) for col in self.__table__.columns.keys()))

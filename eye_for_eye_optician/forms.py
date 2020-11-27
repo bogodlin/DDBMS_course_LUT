@@ -1,6 +1,9 @@
 from flask_wtf import FlaskForm
 from flask_wtf.file import FileField, FileAllowed, FileRequired
-from wtforms import StringField, PasswordField, SubmitField, BooleanField, MultipleFileField, TextAreaField, DateField
+from wtforms import StringField, PasswordField, SubmitField, BooleanField, MultipleFileField, TextAreaField
+
+from wtforms.fields.html5 import DateField
+
 from wtforms.validators import DataRequired, Length, Email, EqualTo, ValidationError
 from eye_for_eye_optician.models import Optician, Citizen
 
@@ -82,7 +85,7 @@ class CitizenRegistrationForm(FlaskForm):
     surname = StringField('Surname',
                           validators=[DataRequired(), Length(min=2, max=200)])
 
-    date_of_birth = DateField('Date of birth', format="%d/%m/%Y")
+    date_of_birth = DateField('Date of birth')
 
     email = StringField('Email',
                         validators=[DataRequired(), Email()])

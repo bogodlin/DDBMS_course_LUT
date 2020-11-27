@@ -55,7 +55,8 @@
                             {% endfor %}
                         </div>
                     {% else %}
-                        {{ form.date_of_birth(class="form-control form-control-lg dtpick", placeholder='**/**/****') }}
+{#                        {{ form.date_of_birth(type="date", class="form-control form-control-lg dtpick", placeholder='**/**/****') }}#}
+                        {{ form.csrt_token }} {{form.date_of_birth(class='form-control form-control-lg datepicker')}} {{form.hidden_tag()}}
                     {% endif %}
                 </div>
 
@@ -69,7 +70,7 @@
                             {% endfor %}
                         </div>
                     {% else %}
-                        {{ form.phone_number(class="form-control form-control-lg") }}
+                        {{ form.phone_number(class="form-control form-control-lg", type="tel", pattern="[0-9]{3}-[0-9]{2}-[0-9]{3}", placeholder="123-12-123") }}
                     {% endif %}
                 </div>
 
