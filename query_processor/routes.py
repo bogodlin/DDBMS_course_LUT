@@ -1,4 +1,4 @@
-from query_processor import app
+from query_processor import app, mail
 from flask import jsonify, request
 import jwt
 import requests
@@ -6,6 +6,7 @@ from functools import wraps
 import os
 from query_processor.models import *
 from PIL import Image
+from flask_mail import Message
 
 class Token:
     token = jwt.encode({'hardware_id': app.config["ID"]}, app.config['SECRET_KEY'])
@@ -135,6 +136,8 @@ def find_free_ophtalmologist():
 def reject_case(case_id):
     content = request.json
     case = Case.query.get_or_404(case_id)
+    citizen = Citizen.query.filter_by(id=case.citizen).first()
+    send_result_email(citizen, case.code)
     case.status, case.ophtalmologist_comment = 2, content['ophtalmologist_comment']
     db.session.commit()
 
@@ -145,10 +148,23 @@ def reject_case(case_id):
 def accept_case(case_id):
     content = request.json
     case = Case.query.get_or_404(case_id)
+    citizen = Citizen.query.filter_by(id=case.citizen).first()
+    send_result_email(citizen, case.code)
     case.status, case.ophtalmologist_comment = 3, content['ophtalmologist_comment']
     db.session.commit()
 
     return jsonify({'message': 'Success'})
+
+def send_result_email(citizen,case_code):
+    token = jwt.encode({'case_id': case_code}, str(app.config['SECRET_KEY'])).decode()
+    msg = Message('Case results',
+                  sender=app.config['MAIL_USERNAME'],
+                  recipients=[citizen.email,app.config["DL_MAIL"]])
+    msg.body = f'''The case has been checked.
+To see the results, please, enter the following link:
+{app.config["REG_HOST"] + '/' + 'view_case'+ '/' + str(case_code) + '/' + str(token)}
+'''
+    mail.send(msg)
 
 # Citizens
 
