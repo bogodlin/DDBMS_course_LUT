@@ -39,4 +39,78 @@
 
         </form>
     </div>
+
+    <div class="content-section">
+
+    <div class="well-block">
+                        <div class="well-title">
+                            <legend class="border-bottom mb-4">Book an Appointment</legend>
+
+                        </div>
+                        <form>
+                            <!-- Form start -->
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="form-group">
+                                        <label class="control-label" for="name">Name</label>
+                                        <input id="name" name="name" type="text" placeholder="Name" class="form-control input-md">
+                                    </div>
+                                </div>
+                                <!-- Text input-->
+                                <div class="col-md-6">
+                                    <div class="form-group">
+                                        <label class="control-label" for="email">Email</label>
+                                        <input id="email" name="email" type="text" placeholder="E-Mail" class="form-control input-md">
+                                    </div>
+                                </div>
+                                <!-- Text input-->
+                                <div class="col-md-6">
+                                    <div class="form-group">
+                                        <label class="control-label" for="date">Preferred Date</label>
+{#                                        <input id="date" name="date" type="text" placeholder="Preferred Date" class="form-control input-md">#}
+                                        {{ sidebar_form.csrt_token }} {{ sidebar_form.date(class='form-control form-control-lg datepicker input-md') }} {{ sidebar_form.hidden_tag() }}
+
+                                    </div>
+                                </div>
+                                <!-- Select Basic -->
+                                <div class="col-md-6">
+                                    <div class="form-group">
+                                        <label class="control-label" for="time">Preferred Time</label>
+                                        {{ sidebar_form.csrt_token }} {{ sidebar_form.time(class='form-control form-control-lg') }} {{ sidebar_form.hidden_tag() }}
+
+{#                                        <select id="time" name="time" class="form-control">#}
+{#                                            <option value="8:00 to 9:00">8:00 to 9:00</option>#}
+{#                                            <option value="9:00 to 10:00">9:00 to 10:00</option>#}
+{#                                            <option value="10:00 to 1:00">10:00 to 1:00</option>#}
+{#                                        </select>#}
+                                    </div>
+                                </div>
+                                <!-- Select Basic -->
+                                <div class="col-md-12">
+                                    <div class="form-group">
+                                        <label class="control-label" for="appointmentfor">Appointment For</label>
+                                        <select id="appointmentfor" name="appointmentfor" class="form-control">
+                                            <option value="Service#1">Specsavers</option>
+                                            <option value="Service#2">Nessen</option>
+                                            <option value="Service#3">ZaidiUvidish</option>
+                                            <option value="Service#4">Zeiss</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                <!-- Button -->
+                                <div class="col-md-12">
+                                    <div class="form-group">
+                                        <button id="singlebutton" name="singlebutton" class="btn btn btn-outline-info">Make An Appointment</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </form>
+                        <!-- form end -->
+                    </div>
+
+
+    </div>
+
+
+
 {% endblock content %}

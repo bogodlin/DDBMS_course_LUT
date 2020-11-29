@@ -5,10 +5,12 @@ from eye_for_eye.forms import *
 from eye_for_eye.models import Case, Citizen
 import jwt
 
+
 @app.route("/", methods=['GET', 'POST'])
 @app.route("/home", methods=['GET', 'POST'])
 def home():
     form = CaseCheckForm()
+    sidebar_form = AppointmentForm()
     if form.validate_on_submit():
         case = Case.query.filter_by(code=form.case_code.data).first()
         if case:
@@ -20,14 +22,16 @@ def home():
                 flash(f'Please, check the surname field once again', 'danger')
         else:
             flash(f'No case with {form.case_code.data} is found', 'danger')
-    return render_template('home.html', form = form)
+    return render_template('home.html', form=form, sidebar_form=sidebar_form)
+
 
 @app.route("/about")
 def about():
     return render_template('about.html', title='About')
 
+
 @app.route("/view_case/<case_code>/<token>", methods=['GET', 'POST'])
-def view_case(case_code,token):
+def view_case(case_code, token):
     try:
         jwt.decode(token, str(app.config['SECRET_KEY']))
         case = Case.query.filter_by(code=case_code).first()
