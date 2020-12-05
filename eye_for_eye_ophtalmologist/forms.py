@@ -55,7 +55,8 @@ class ResetPasswordForm(FlaskForm):
 # Ophtalmologist Update form
 
 class UpdateAccountForm(FlaskForm):
-    picture = FileField('Update Profile Picture', validators=[FileAllowed(['jpg', 'png']), DataRequired()])
+    picture = FileField('Update Profile Picture', validators=[FileAllowed(['jpg', 'png'])])
+    available = BooleanField('Current availablity')
     submit = SubmitField('Update')
 
 # Ophtalmologist Case Comment

@@ -127,16 +127,28 @@ def account():
         if form.picture.data:
             picture_file = save_profile_picture(form.picture.data)
             current_user.image_file = picture_file
-        db.session.commit()
-        flash('Your account has been updated!', 'success')
-        return redirect(url_for('account'))
-    # elif request.method == 'GET':
-    #     form.username.data = current_user.username
-    #     form.email.data = current_user.email
+        try:
+            request = requests.post(
+                app.config["QP"] + '/change_ophta_availablity/' + str(
+                    current_user.id),
+                headers={"x-access-token": Token.token},
+                json={"availability": form.available.data}).json()
+
+            current_user.available = form.available.data
+            db.session.commit()
+            if form.available.data == True:
+                flash(f'You are currently available and new cases could be assigned', 'success')
+            else:
+                flash(f'You have switched your account to not available', 'danger')
+            return redirect(url_for('account'))
+
+        except KeyError:
+            return request
+
     image_file = url_for('static', filename='profile_pics/' + current_user.image_file)
 
     return render_template('account.html', title='Account',
-                           image_file=image_file, form=form)
+                           image_file=image_file, form=form, available = current_user.available)
 
 # Receive case from platform
 

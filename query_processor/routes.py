@@ -121,7 +121,7 @@ def find_free_ophtalmologist():
     free_ophtalmologist_query = """
     select free_ophta.id, count(*) as "Cases"
     from "case" as "cases"
-         inner join
+         right outer join
          (select * from "ophtalmologist" where active = True and available = True) "free_ophta"
          on cases.ophtalmologist = free_ophta.id
     group by free_ophta.id
@@ -195,3 +195,13 @@ def register_citizen():
     db.session.commit()
 
     return jsonify({"created_id": citizen.id})
+
+@app.route("/change_ophta_availablity/<ophta_id>", methods=['POST', 'GET'])
+@token_required
+def change_ophta_availablity(ophta_id):
+    content = request.json
+    ophtalmologist = Ophtalmologist.query.get_or_404(ophta_id)
+    ophtalmologist.available = content['availability']
+    db.session.commit()
+
+    return jsonify({'message': 'Success'})
