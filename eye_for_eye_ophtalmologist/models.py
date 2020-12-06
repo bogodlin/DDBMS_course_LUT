@@ -18,7 +18,7 @@ class Ophtalmologist(db.Model, UserMixin):
     surname = db.Column(db.String, nullable=False)
     email = db.Column(db.String(120), nullable=False)
     password = db.Column(db.String(60), nullable=False)
-    image_file = db.Column(db.String(20), nullable=False, default='ophtalmologist_default.png')
+    image_file = db.Column(db.String, nullable=False, default='ophtalmologist_default.png')
     active = db.Column(db.Boolean, default=False)
     available = db.Column(db.Boolean, default=True)
     # country = db.Column(db.Integer, db.ForeignKey('country.id'))

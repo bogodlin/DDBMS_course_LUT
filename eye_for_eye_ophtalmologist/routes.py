@@ -202,7 +202,7 @@ def reject_case(case_id):
     try:
         request = requests.post(app.config["QP"] + '/case/' + str(case.id) + '/reject',
             headers={"x-access-token": Token.token},
-            json={"ophtalmologist_comment": case.ophtalmologist_comment}).json()
+            json={"ophtalmologist_comment": ophtalmologist_comment}).json()
 
         case.status, case.ophtalmologist_comment = 2, ophtalmologist_comment
 
@@ -227,7 +227,7 @@ def accept_case(case_id):
             app.config["QP"] + '/case/' + str(
                 case.id) + '/accept',
             headers={"x-access-token": Token.token},
-            json={"ophtalmologist_comment": case.ophtalmologist_comment}).json()
+            json={"ophtalmologist_comment": ophtalmologist_comment}).json()
 
         case.status, case.ophtalmologist_comment = 3, ophtalmologist_comment
 

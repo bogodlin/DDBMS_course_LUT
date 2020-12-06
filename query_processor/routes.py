@@ -5,7 +5,6 @@ import requests
 from functools import wraps
 import os
 from query_processor.models import *
-from PIL import Image
 from flask_mail import Message
 
 class Token:

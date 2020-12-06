@@ -12,7 +12,7 @@ class Citizen(db.Model):
     date_of_birth = db.Column(db.Date, nullable=False)
     email = db.Column(db.String(120), nullable=True)
     phone_number = db.Column(db.String(15), nullable=False)
-    image_file = db.Column(db.String(20), nullable=False, default='citizen_default.png')
+    image_file = db.Column(db.String, nullable=False, default='citizen_default.png')
     cases = db.relationship('Case', backref='case_citizen', lazy=True)
     country = db.Column(db.Integer, db.ForeignKey('country.id'))
 
