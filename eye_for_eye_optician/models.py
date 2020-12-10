@@ -9,8 +9,6 @@ from datetime import datetime
 def load_user(user_id):
     return Optician.query.get(int(user_id))
 
-#TODO map to the columns added directly to db
-
 class Citizen(db.Model):
 
     __tablename__ = 'citizen'
