@@ -111,3 +111,13 @@ class Organisation(db.Model):
 
     def __repr__(self):
         return str(dict((col, getattr(self, col)) for col in self.__table__.columns.keys()))
+
+class Appointment(db.Model):
+
+    __tablename__ = 'appointment'
+
+    id = db.Column(db.Integer, primary_key=True)
+    start_time = db.Column(db.DateTime, default=datetime.utcnow)
+    end_time = db.Column(db.DateTime, default=datetime.utcnow)
+    citizen = db.Column(db.Integer, db.ForeignKey('citizen.id'))
+    optician = db.Column(db.Integer, db.ForeignKey('optician.id'))
