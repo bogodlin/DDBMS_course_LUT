@@ -2,5 +2,6 @@
 <project version="4">
   <component name="SqlDialectMappings">
     <file url="file://$PROJECT_DIR$/eye_for_eye_optician/routes.py" dialect="PostgreSQL" />
+    <file url="file://$PROJECT_DIR$/query_processor/routes.py" dialect="PostgreSQL" />
   </component>
 </project>

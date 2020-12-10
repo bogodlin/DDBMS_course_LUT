@@ -116,16 +116,19 @@ def register_case():
 
 def find_free_ophtalmologist():
 
-    # TODO find ophto which hasn't got any assigned cases
+    # TODO rwrite in ORM
     free_ophtalmologist_query = """
-    select free_ophta.id, count(*) as "Cases"
-    from "case" as "cases"
-         right outer join
-         (select * from "ophtalmologist" where active = True and available = True) "free_ophta"
-         on cases.ophtalmologist = free_ophta.id
-    group by free_ophta.id
-    order by 2
-    limit 1
+            SELECT free_ophta.id, 
+               Count(*) AS "Cases" 
+        FROM   "case" AS "cases" 
+               RIGHT OUTER JOIN (SELECT * 
+                                 FROM   "ophtalmologist" 
+                                 WHERE  active = true 
+                                        AND available = true) "free_ophta" 
+                             ON cases.ophtalmologist = free_ophta.id 
+        GROUP  BY free_ophta.id 
+        ORDER  BY 2 
+        LIMIT  1 
     """
     free_ophtalmologist = db.engine.execute(free_ophtalmologist_query).first().id
     return free_ophtalmologist
