@@ -1,8 +1,10 @@
 from eye_for_eye import db, app
 from sqlalchemy.dialects.postgresql import ARRAY
 from datetime import datetime
+from flask_login import UserMixin
+from itsdangerous import TimedJSONWebSignatureSerializer as Serializer
 
-class Citizen(db.Model):
+class Citizen(db.Model, UserMixin):
 
     __tablename__ = 'citizen'
 
@@ -18,6 +20,23 @@ class Citizen(db.Model):
 
     def __repr__(self):
         return str(dict((col, getattr(self, col)) for col in self.__table__.columns.keys()))
+
+    def __repr__(self):
+        return str(dict((col, getattr(self, col)) for col in self.__table__.columns.keys()))
+
+    def get_reset_token(self, expires_sec=1800):
+        s = Serializer(app.config['SECRET_KEY'], expires_sec)
+        return s.dumps({'user_id': self.id}).decode('utf-8')
+
+    @staticmethod
+    def verify_reset_token(token):
+        s = Serializer(app.config['SECRET_KEY'])
+
+        try:
+            user_id = s.loads(token)['user_id']
+        except:
+            return None
+        return Citizen.query.get(user_id)
 
 class Case(db.Model):
 
